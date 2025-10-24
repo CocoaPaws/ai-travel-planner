@@ -1,0 +1,62 @@
+/* components/Planner.module.css (Web 优先修正版) */
+
+.plannerContainer {
+  display: flex;
+  width: 100%;
+  height: calc(100vh - 68px); /* 高度占满视口剩余空间 */
+}
+
+.sidebar {
+  width: 450px;
+  flex-shrink: 0; /* 防止侧边栏被压缩 */
+  height: 100%;
+  background-color: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 防止内部内容溢出影响布局 */
+}
+
+/* header, title, subtitle, form, divider 样式保持不变 */
+.header {
+  flex-shrink: 0;
+  margin-bottom: 2rem;
+}
+.title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.subtitle {
+  color: var(--color-text-secondary);
+  margin-top: 0.25rem;
+}
+.form {
+   flex-shrink: 0;
+}
+.divider {
+  margin: 2rem 0;
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+/* results 样式保持不变 */
+.results {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-right: -1rem;
+  padding-right: 1rem;
+}
+
+/* ================== 关键修改在这里 ================== */
+.mainContent {
+  flex: 1; /* 占据所有剩余的宽度 */
+  height: 100%; /* 高度与父容器相同 */
+  position: relative; /* 为子元素（地图）提供定位上下文 */
+  background-color: var(--color-base);
+}
+
+/* 确保 Map 组件的容器能撑满 mainContent */
+/* 这需要我们在 Map.tsx 中添加一个 wrapper div */
+
+/* ====================================================== */

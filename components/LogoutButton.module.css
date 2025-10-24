@@ -1,0 +1,23 @@
+/* components/LogoutButton.module.css */
+
+.logoutButton {
+  padding: 0.5rem 1rem; /* 对应 Tailwind 的 px-4 py-2 */
+  font-size: 0.875rem; /* 对应 Tailwind 的 text-sm */
+  font-weight: 500;
+  
+  /* 默认状态：低调的文本和透明背景 */
+  color: var(--color-text-secondary);
+  background-color: transparent;
+  
+  border: none;
+  border-radius: 0.5rem; /* 对应 Tailwind 的 rounded-lg */
+  
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.logoutButton:hover {
+  /* 悬浮状态：背景变色，文字颜色加深 */
+  background-color: var(--color-base); /* 使用米白色背景 */
+  color: var(--color-text-primary);
+}

@@ -1,0 +1,95 @@
+/* components/AuthForm.module.css */
+.container {
+  width: 100%;
+  max-width: 24rem; /* 384px */
+  padding: 2rem;
+  background-color: var(--color-surface);
+  border-radius: 1rem; /* 16px */
+  box-shadow: 6px 6px 12px #d0d0ce, -6px -6px 12px #ffffff;
+}
+
+.title {
+  font-size: 1.875rem; /* 30px */
+  font-weight: 700;
+  text-align: center;
+  color: var(--color-text-primary);
+}
+
+.form {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.label {
+  display: block;
+  font-size: 0.875rem; /* 14px */
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--color-base);
+  border: none;
+  border-radius: 0.5rem; /* 8px */
+  color: var(--color-text-primary);
+  transition: box-shadow 0.3s ease;
+  box-shadow: inset 3px 3px 6px #d9d9d7, inset -3px -3px 6px #ffffff;
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: 3px 3px 6px #d9d9d7, -3px -3px 6px #ffffff;
+}
+
+.button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.5rem; /* 8px */
+  cursor: pointer;
+  box-shadow: 3px 3px 6px #d9d9d7, -3px -3px 6px #ffffff;
+  transition: box-shadow 0.3s ease;
+}
+
+.button:hover {
+  box-shadow: 4px 4px 8px #c7c7c5, -4px -4px 8px #ffffff;
+}
+
+.button:active {
+  box-shadow: inset 3px 3px 6px #3b73b5, inset -3px -3px 6px #59adff;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  font-size: 0.875rem;
+  color: #ef4444; /* red-500 */
+}
+
+.toggleContainer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem; /* 14px */
+  color: var(--color-text-secondary);
+}
+
+.toggleLink {
+  color: var(--color-primary);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.toggleLink:hover {
+  text-decoration: underline;
+}
