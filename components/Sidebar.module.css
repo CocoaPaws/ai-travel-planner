@@ -1,0 +1,68 @@
+/* components/Sidebar.module.css */
+.sidebar {
+  padding: 1.5rem;
+  border-right: 1px solid #E2E8F0;
+  background-color: white;
+  transition: width 0.3s ease-in-out;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarOpen {
+  width: 15rem; /* 240px */
+}
+
+.sidebarClosed {
+  width: 4rem; /* 64px */
+}
+
+.nav {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+.navButton:hover {
+  background-color: #F8FAFC; /* slate-50 */
+}
+
+.navIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #94A3B8; /* slate-400 */
+}
+
+.navText {
+  white-space: nowrap;
+}
+
+.recentPlans {
+  margin-top: 1.5rem;
+}
+
+.recentTitle {
+  font-size: 0.75rem;
+  color: #64748B; /* slate-500 */
+  white-space: nowrap;
+}
+
+.recentList {
+   margin-top: 0.5rem;
+   display: flex;
+   flex-direction: column;
+   gap: 0.5rem;
+}

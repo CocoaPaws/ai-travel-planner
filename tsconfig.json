@@ -33,11 +33,10 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts",
+    "types/**/*.d.ts",
     ".next\\dev/types/**/*.ts",
     ".next\\dev/types/**/*.ts"
-, "tailwind.config.js"  ],
+  ],
   "exclude": [
     "node_modules"
   ]

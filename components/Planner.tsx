@@ -1,117 +1,187 @@
-// components/Planner.tsx (结构修正版)
+// components/Planner.tsx (完整版 - 第3阶段)
 'use client';
 
-import { useState } from 'react';
-import dynamic from 'next/dynamic';
-import TripTimeline from './TripTimeline';
-import LoadingSkeleton from './LoadingSkeleton';
+import React, { useState, useEffect } from 'react';
+
+// 布局和 UI 组件
+import Header from './Header';
+import Sidebar from './Sidebar';
+import MainContent from './MainContent';
+import RightRail from './RightRail';
+import styles from './Planner.module.css';
+
+// 服务和类型定义
 import { getAiTripPlan, TripRequest, AiTripPlan } from '@/lib/aiService';
 import { MapLocation } from '@/lib/mapService';
-import { SparklesIcon } from '@heroicons/react/24/outline';
-import styles from './Planner.module.css'; // 导入 Planner 的样式
-import formStyles from './AuthForm.module.css'; // 复用 AuthForm 的表单样式
 
-// 动态导入 Map 组件
-const Map = dynamic(() => import('./Map'), {
-  ssr: false,
-  loading: () => <div className="w-full h-full bg-base flex items-center justify-center"><p className="text-secondary">地图加载中...</p></div>
-});
+// Speech Recognition Hook (保持不变)
+function useSpeechRecognition(onResult: (text: string) => void) {
+  const recognitionRef = React.useRef<any>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
 
-// 结果展示区组件 (保持不变)
-function ResultDisplay({ isLoading, error, tripPlan }: { isLoading: boolean; error: string | null; tripPlan: AiTripPlan | null; }) {
-  if (isLoading) return <LoadingSkeleton />;
-  if (error) return (
-    <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg animate-fade-in">
-      <h4 className="font-bold">发生错误</h4>
-      <p className="text-sm">{error}</p>
-    </div>
-  );
-  if (tripPlan) return (
-    <div className="animate-fade-in">
-      <TripTimeline plan={tripPlan} />
-    </div>
-  );
-  return (
-    <div className="text-center text-secondary py-10">
-      <SparklesIcon className="w-12 h-12 mx-auto text-gray-300" />
-      <p className="mt-2 text-sm">您的旅行计划将在这里呈现</p>
-    </div>
-  );
+    const recognition = new SpeechRecognition();
+    recognition.lang = "zh-CN";
+    recognition.interimResults = false;
+    recognition.continuous = false;
+
+    recognition.onresult = (e: any) => {
+      const transcript = Array.from(e.results).map((r: any) => r[0].transcript).join("");
+      onResult(transcript);
+    };
+    recognitionRef.current = recognition;
+
+    return () => {
+      if (recognitionRef.current) recognitionRef.current.abort();
+    };
+  }, [onResult]);
+
+  const start = () => recognitionRef.current?.start();
+  const stop = () => recognitionRef.current?.stop();
+  const supported = typeof window !== 'undefined' && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  return { start, stop, supported };
 }
 
+// 完整的 MOCK_PLAN 数据，用于初始展示
+const MOCK_PLAN = {
+  id: "plan_1",
+  title: "日本 - 5天经典游 (家庭)",
+  budget: 10000,
+  days: [
+    {
+      title: "Day 1 - 东京初见",
+      items: [
+        { type: "place", label: "浅草寺", coordinates: { latitude: 35.7148, longitude: 139.7967 } },
+        { type: "place", label: "秋叶原", coordinates: { latitude: 35.7022, longitude: 139.7741 } },
+        { type: "food", label: "一兰拉面 (午餐)" },
+        { type: "stay", label: "新宿格兰酒店" },
+      ],
+      budget: 1500,
+    },
+    {
+      title: "Day 2 - 京都古韵",
+      items: [
+        { type: "place", label: "清水寺", coordinates: { latitude: 34.9949, longitude: 135.7850 } },
+        { type: "place", label: "伏见稻荷大社", coordinates: { latitude: 34.9671, longitude: 135.7727 } },
+        { type: "food", label: "汤豆腐嵯峨野 (午餐)" },
+      ],
+      budget: 1700,
+    },
+    {
+      title: "Day 3 - 大阪美食",
+      items: [
+        { type: "place", label: "道顿堀", coordinates: { latitude: 34.6687, longitude: 135.5013 } },
+        { type: "food", label: "黑门市场 (街头小吃)" },
+      ],
+      budget: 1600,
+    },
+  ],
+  generatedFrom: "示例：我想去日本，5天，带孩子，喜欢美食和动漫"
+};
+
+
 export default function Planner() {
-  // state 和函数逻辑 (保持不变)
-  const [destination, setDestination] = useState('日本东京');
-  const [days, setDays] = useState(5);
-  const [budget, setBudget] = useState(10000);
-  const [companion, setCompanion] = useState('带孩子的一家三口');
-  const [preferences, setPreferences] = useState('喜欢宫崎骏动漫、日式拉面和购物');
-  const [tripPlan, setTripPlan] = useState<AiTripPlan | null>(null);
+  // 核心状态管理
+  const [query, setQuery] = useState("");
+  const [plan, setPlan] = useState<any>(MOCK_PLAN);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [list, setList] = useState([MOCK_PLAN]);
+  const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // 语音识别 Hook
+  const onSpeechResult = (text: string) => {
+    setQuery(text);
+    handleGenerate(text);
+    setIsListening(false);
+  };
+  const { start, stop, supported } = useSpeechRecognition(onSpeechResult);
+
+  const toggleListening = () => {
+    if (!supported) return alert("当前浏览器不支持语音识别。");
+    if (!isListening) {
+      start();
+      setIsListening(true);
+    } else {
+      stop();
+      setIsListening(false);
+    }
+  };
+
+  // 处理 AI 生成逻辑
+  const handleGenerate = async (inputText: string) => {
+    if (!inputText.trim()) return;
     setIsLoading(true);
     setError(null);
-    setTripPlan(null);
-    const request: TripRequest = { destination, days, budget, companion, preferences };
     try {
-      const plan = await getAiTripPlan(request);
-      setTripPlan(plan);
+      // NOTE: 暂时注释掉真实 AI 调用，以便快速预览 UI
+      // const request: TripRequest = { destination: inputText, days: 5, budget: 10000, companion: '', preferences: inputText };
+      // const newPlan = await getAiTripPlan(request);
+
+      const newPlan = { ...MOCK_PLAN, title: `${inputText.slice(0, 15)}...`, generatedFrom: inputText, id: `plan_${Date.now()}` };
+      setPlan(newPlan);
+      setList((currentList) => [newPlan, ...currentList.filter(p => p.id !== newPlan.id)]);
     } catch (err: any) {
-      setError(err.message || '发生未知错误');
+      setError(err.message || 'AI 生成失败');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getLocationsFromPlan = (plan: AiTripPlan | null): MapLocation[] => {
-    if (!plan) return [];
+  // 从行程中提取地理位置坐标
+  const getLocationsFromPlan = (currentPlan: any | null): MapLocation[] => {
+    if (!currentPlan) return [];
     const locations: MapLocation[] = [];
-    plan.daily_plan.forEach(day => {
-      day.activities.forEach(activity => {
-        if (activity.coordinates?.latitude && activity.coordinates?.longitude) {
+    currentPlan.days.forEach((day: any) => {
+      day.items.forEach((item: any) => {
+        if (item.coordinates) {
           locations.push({
-            name: activity.location,
-            coordinates: [activity.coordinates.longitude, activity.coordinates.latitude],
+            name: item.label,
+            coordinates: [item.coordinates.longitude, item.coordinates.latitude],
           });
         }
       });
     });
     return locations;
   };
+  
+  // 模拟的事件处理函数
+  const savePlan = () => alert("已保存到云端（模拟）。");
+  const openChat = () => alert("打开 AI 聊天窗口（模拟）。");
 
   return (
-    <div className={styles.plannerContainer}>
-      <aside className={styles.sidebar}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>旅行计划</h1>
-          <p className={styles.subtitle}>告诉我们您的想法，让 AI 为您规划</p>
+    <div className={styles.appContainer}>
+      <Header 
+        query={query} 
+        setQuery={setQuery} 
+        isListening={isListening}
+        toggleListening={toggleListening}
+        onGenerate={() => handleGenerate(query)}
+      />
+      <div className={styles.mainWrapper}>
+        <Sidebar 
+          isOpen={sidebarOpen} 
+          setIsOpen={setSidebarOpen}
+          list={list}
+          onSelectPlan={(selectedPlan) => setPlan(selectedPlan)}
+        />
+        <div className={styles.contentArea}>
+          <MainContent 
+            plan={plan}
+            onSave={savePlan}
+            onChat={openChat}
+            locations={getLocationsFromPlan(plan)}
+            isLoading={isLoading} // 将加载状态传递给 MainContent
+            error={error}       // 将错误状态传递给 MainContent
+          />
+          <RightRail 
+            plan={plan} 
+          />
         </div>
-        
-        <form onSubmit={handleSubmit} className={`${formStyles.form} ${styles.form}`}>
-          {/* 表单内容 */}
-          <div>
-            <label className={formStyles.label}>目的地</label>
-            <input type="text" value={destination} onChange={(e) => setDestination(e.target.value)} required className={formStyles.input}/>
-          </div>
-          {/* ... 其他表单项也使用 formStyles ... */}
-          <button type="submit" disabled={isLoading} className={formStyles.button}>
-            {isLoading ? '正在规划中...' : '生成智能行程'}
-          </button>
-        </form>
-
-        <div className={styles.divider}></div>
-
-        <div className={styles.results}>
-          <ResultDisplay isLoading={isLoading} error={error} tripPlan={tripPlan} />
-        </div>
-      </aside>
-
-      <main className={styles.mainContent}>
-        <Map locations={getLocationsFromPlan(tripPlan)} />
-      </main>
+      </div>
     </div>
   );
 }

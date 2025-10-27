@@ -1,0 +1,54 @@
+/* components/Header.module.css */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #E2E8F0; /* slate-200 */
+  background-color: white;
+  flex-shrink: 0;
+}
+
+.leftSection, .rightSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 1.5rem; /* 2xl */
+  font-weight: 600;
+}
+
+.searchInputWrapper {
+  position: relative;
+}
+
+.searchInputIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94A3B8; /* slate-400 */
+}
+
+.micButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #CBD5E1; /* slate-300 */
+  background-color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.micButton:hover {
+  background-color: #F8FAFC; /* slate-50 */
+}
+
+.micButtonListening {
+  background-color: #FEE2E2; /* rose-100 */
+  border-color: #FECACA; /* rose-200 */
+}

@@ -1,0 +1,14 @@
+/* components/ui/Avatar.module.css */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 2.5rem; /* 40px */
+  width: 2.5rem; /* 40px */
+  flex-shrink: 0;
+  border-radius: 9999px; /* 圆形 */
+  background-color: #F1F5F9; /* slate-100 */
+  color: #475569; /* slate-600 */
+  font-weight: 500;
+}
