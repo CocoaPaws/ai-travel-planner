@@ -1,35 +1,63 @@
-/* components/MainContent.module.css */
+/* components/MainContent.module.css (固定地图版) */
+
+/* 
+ * 1. 主容器设置为 Flex 布局，并隐藏自身的滚动条。
+ *    所有滚动都将交给内部的 .scrollableContent 容器处理。
+ */
 .mainContent {
-  flex: 1; /* 占据所有可用空间 */
-  padding: 1.5rem;
-  overflow-y: auto; /* 当内容超出时，允许垂直滚动 */
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; /* 元素之间的间距 */
+  padding: 1.5rem;
+  gap: 1.5rem;
+  overflow: hidden; /* 关键：隐藏主容器的滚动条 */
 }
 
+/* 
+ * 2. 地图卡片和操作栏保持固定，不参与空间的弹性分配。
+ */
 .mapCard {
-  height: 300px; 
-  flex-shrink: 0; /* 防止地图卡片被压缩 */
+  height: 40vh; /* 建议使用 vh，使其高度能随浏览器窗口变化，更具响应性 */
+  min-height: 250px;
+  flex-shrink: 0; /* 关键：防止此元素在空间不足时被压缩 */
 }
 
 .actionBar {
+  flex-shrink: 0; /* 关键：防止此元素被压缩 */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-shrink: 0;
 }
 
 .planTitle {
-  font-size: 1.25rem; /* 20px */
+  font-size: 1.25rem;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .actionBarButtons {
   display: flex;
   gap: 0.75rem;
+  flex-shrink: 0;
 }
 
+/* 
+ * 3. 新增一个可滚动的容器，包裹所有需要滚动的内容。
+ *    flex-grow: 1 让它占据所有剩余的垂直空间。
+ */
+.scrollableContent {
+  flex-grow: 1; /* 关键：占据所有剩余空间 */
+  overflow-y: auto; /* 关键：只在这个容器内部启用垂直滚动条 */
+  min-height: 0; 
+  padding-right: 1rem;
+  margin-right: -1rem;
+}
+
+/* 
+ * 4. 下方的所有样式都与您之前的代码保持一致，它们现在都在 .scrollableContent 内部。
+ */
 .itineraryContainer {
   display: flex;
   flex-direction: column;
@@ -37,30 +65,48 @@
 }
 
 .dayCard {
-  padding: 1rem;
+  padding: 1.5rem;
+  transition: all 0.2s ease-in-out;
 }
 
 .dayHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  width: 100%;
+}
+
+.dayContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  /* 允许内容区在必要时被压缩，防止溢出 */
+  min-width: 0; 
 }
 
 .dayTitle {
-   font-size: 1.125rem; /* 18px */
+   font-size: 1.125rem;
    font-weight: 600;
 }
 
 .dayMeta {
    font-size: 0.875rem;
    color: var(--color-text-secondary);
+   flex-shrink: 0;
+   margin-left: 1rem;
+   white-space: nowrap;
 }
 
 .itemsGrid {
-   margin-top: 0.75rem;
    display: grid;
-   grid-template-columns: repeat(3, minmax(0, 1fr)); /* 响应式3列 */
+   grid-template-columns: repeat(1, minmax(0, 1fr));
    gap: 0.75rem;
+}
+@media (min-width: 640px) {
+  .itemsGrid {
+    /* 在较宽屏幕上，根据可用空间显示2或3列 */
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
 }
 
 .item {
@@ -68,7 +114,14 @@
    align-items: center;
    gap: 0.5rem;
    font-size: 0.875rem;
-   color: #334155; /* slate-700 */
+   color: #334155;
+   /* 防止过长的地点名称破坏布局 */
+   overflow: hidden;
+}
+.item span:last-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .itemIcon {
@@ -77,10 +130,13 @@
    justify-content: center;
    width: 1.5rem;
    height: 1.5rem;
+   flex-shrink: 0;
    border-radius: 0.25rem;
-   background-color: #F1F5F9; /* slate-100 */
+   background-color: #F1F5F9;
 }
 
 .chartContainer {
-  height: 8rem; /* 128px */
+  position: relative;
+  width: 100%;
+  height: 8rem;
 }

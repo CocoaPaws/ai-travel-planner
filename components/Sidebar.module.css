@@ -66,3 +66,54 @@
    flex-direction: column;
    gap: 0.5rem;
 }
+
+/* components/Sidebar.module.css */
+/* ... 已有样式 ... */
+
+.toggleIcon {
+  font-weight: bold;
+  font-size: 1.25rem;
+}
+
+/* --- 新增样式 --- */
+.loadingText {
+  padding: 1rem 0.5rem;
+  font-size: 0.875rem;
+  color: #64748B; /* slate-500 */
+  text-align: center;
+  white-space: nowrap;
+}
+
+.cardWrapper {
+  cursor: pointer;
+  border-radius: 0.5rem; /* 8px */
+}
+.cardWrapper:hover {
+  background-color: #F8FAFC; /* slate-50 */
+}
+
+.planCard {
+  padding: 0.75rem;
+  border: 1px solid transparent;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+/* components/Sidebar.module.css (字体调整版) */
+/* ... */
+
+.planTitleText {
+  font-size: 0.85rem; /* 13px, 一个介于 12px 和 14px 之间的值，更精致 */
+  font-weight: 500; /* 可以将字重设为 medium，而不是默认的 bold */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-text-primary); /* 确保使用主文本颜色 */
+}
+
+.planMetaText {
+  font-size: 0.6875rem; /* 11px, 非常小的字体，适合元数据 */
+  color: var(--color-text-secondary); /* 使用次要文本颜色 */
+  white-space: nowrap;
+  margin-top: 0.125rem; /* 可以在标题和元数据之间增加一点点间距 */
+}

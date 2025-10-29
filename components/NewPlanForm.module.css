@@ -1,0 +1,85 @@
+/* components/NewPlanForm.module.css */
+.formContainer { display: flex; flex-direction: column; gap: 1rem; }
+.title { font-size: 1.25rem; font-weight: 600; }
+.inputWrapper { position: relative; }
+.preferences { margin-top: 0.5rem; }
+.prefTitle { font-size: 0.875rem; font-weight: 500; color: var(--color-text-secondary); }
+.tagsContainer { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+.tag {
+  padding: 0.25rem 0.75rem; background-color: #F1F5F9;
+  border-radius: 9999px; font-size: 0.875rem; cursor: pointer;
+  border: 1px solid transparent;
+}
+.tagSelected {
+  background-color: #DBEAFE; /* blue-200 */
+  color: #2563EB; /* blue-600 */
+  border-color: #BFDBFE; /* blue-300 */
+}
+.buttonContainer { margin-top: 1rem; display: flex; justify-content: flex-end; }
+
+.inputWrapper { 
+  position: relative; 
+  width: 100%; /* 确保 wrapper 占满宽度 */
+  margin: 0 auto; 
+}
+
+.tag { /* ... */ border: 1px solid #E2E8F0; }
+.tagSelected {
+  /* ... */
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.tagRemoveBtn {
+  display: flex; align-items: center; justify-content: center;
+  width: 1rem; height: 1rem; border-radius: 9999px;
+  background-color: transparent; border: none; cursor: pointer;
+  color: #2563EB;
+}
+.tagRemoveBtn:hover { background-color: rgba(0,0,0,0.1); }
+
+.tagInput {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  padding: 0.25rem;
+  flex-grow: 1;
+  min-width: 80px;
+}
+
+.micButton {
+  position: absolute;
+  right: 0rem;
+  top: 50%;
+  transform: translateY(-50%);
+  
+  /* --- 核心修改在这里 --- */
+  padding: 0.25rem; /* 给图标周围留出一点可点击区域 */
+  background-color: transparent; /* 1. 默认背景色为透明 */
+  border: none; /* 2. 移除所有边框 */
+  border-radius: 9999px; /* 保持圆形的可点击区域 */
+  
+  cursor: pointer;
+  color: var(--color-text-secondary); /* 默认图标颜色为次要文本颜色 */
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  transition: background-color 0.2s, color 0.2s; /* 添加平滑过渡效果 */
+}
+
+/* 悬停时的样式 */
+.micButton:hover {
+  background-color: #F1F5F9; /* slate-100, 悬停时显示非常淡的灰色背景 */
+  color: var(--color-text-primary); /* 悬停时图标颜色加深 */
+}
+
+/* 正在录音时的样式 (保持不变) */
+.listening {
+  color: var(--color-primary); /* 录音时图标变为蓝色 */
+}
+.listening:hover {
+  background-color: #DBEAFE; /* blue-100, 录音时悬停背景变为淡蓝色 */
+}
+

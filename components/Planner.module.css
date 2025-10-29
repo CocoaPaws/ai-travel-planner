@@ -1,39 +1,18 @@
-/* components/Planner.module.css */
-
-/* 
- * .appContainer 
- * 这是整个应用页面的最外层容器（不包括浏览器窗口本身）。
- * 它使用 flex 布局，方向为垂直（column），确保 Header 在上，mainWrapper 在下。
- * height: 100vh 让它占满整个视口的高度。
- * background-color 和 color 定义了应用的基础色调，灵感来自您原型中的 slate-50/slate-900。
- */
+/* components/Planner.module.css (无 Header 版) */
 .appContainer {
   display: flex;
-  flex-direction: column;
-  height: 100vh;
+  height: 100vh; /* 直接让主容器撑满整个屏幕高度 */
   background-color: #F8FAFC; /* slate-50 */
-  color: #0F172A; /* slate-900 */
 }
 
-/* 
- * .mainWrapper
- * 这个容器包裹了 Header 下方的所有内容（即 Sidebar 和 contentArea）。
- * display: flex 让它的子元素水平排列。
- * flex-grow: 1 让它自动“生长”，占据 appContainer 中除了 Header 之外的所有垂直空间。
- * overflow: hidden 是一个重要的保险措施，防止其子元素（特别是可滚动的区域）的内容溢出，破坏整体布局。
- */
+/* 我们可以直接在 appContainer 中放置 Sidebar 和 contentArea，不再需要 mainWrapper */
+/* 但为了减少代码改动，我们暂时保留 mainWrapper，它现在和 appContainer 效果几乎一样 */
 .mainWrapper {
   display: flex;
   flex-grow: 1;
   overflow: hidden;
 }
 
-/* 
- * .contentArea
- * 这是占据 Sidebar 右侧所有剩余空间的区域。
- * flex-grow: 1 使得它会自动填充 mainWrapper 中除了 Sidebar 之外的所有水平空间。
- * display: flex 意味着它本身也是一个 flex 容器，为我们下一步在其中放置 MainContent 和 RightRail 做好了准备。
- */
 .contentArea {
   flex-grow: 1;
   display: flex;

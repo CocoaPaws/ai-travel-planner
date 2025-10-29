@@ -1,0 +1,33 @@
+/* components/ui/Dialog.module.css */
+.dialogOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.3s ease;
+}
+
+.dialogContent {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 50;
+  width: 90vw;
+  max-width: 32rem; /* 512px */
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  padding: 1.5rem;
+  animation: fadeInScale 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* 为弹窗内的直接子元素提供默认间距 */
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeInScale { 
+  from { opacity: 0; transform: translate(-50%, -48%) scale(0.95); } 
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}

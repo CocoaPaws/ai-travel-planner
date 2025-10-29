@@ -1,9 +1,10 @@
-// components/Map.tsx
+// components/Map.tsx (State 管理版)
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { initializeMap, addMarkersToMap, MapLocation } from '@/lib/mapService';
-import styles from './Map.module.css'; // 导入样式
+import React, { useEffect, useRef, useState } from 'react';
+// 1. 导入新的 createMap 函数
+import { createMap, drawPathAndMarkers, MapLocation } from '@/lib/mapService';
+import styles from './Map.module.css';
 
 interface MapProps {
   locations: MapLocation[];
@@ -11,31 +12,48 @@ interface MapProps {
 
 export default function Map({ locations }: MapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  // 2. 使用 useState 来持有地图实例
+  const [mapInstance, setMapInstance] = useState<any>(null);
 
-  // 初始化地图
+  // Effect 1: 只负责创建地图实例，并且只运行一次
   useEffect(() => {
-    let isMounted = true; // 防止组件卸载后仍然执行
+    let map: any; // 临时变量
     if (mapContainerRef.current) {
-      initializeMap(mapContainerRef.current.id).catch(console.error);
+      console.log("Map.tsx: 正在创建地图实例...");
+      createMap(mapContainerRef.current.id)
+        .then(newMapInstance => {
+          map = newMapInstance;
+          setMapInstance(newMapInstance); // 3. 将创建好的实例存入 state
+        })
+        .catch(console.error);
     }
+    
+    // 组件卸载时销毁地图，释放资源
     return () => {
-      isMounted = false;
+      if (map) {
+        console.log("Map.tsx: 正在销毁地图实例...");
+        map.destroy();
+      }
     };
-  }, []);
+  }, []); // 空依赖数组确保只运行一次
 
-  // 更新地图标记点
+  // Effect 2: 负责绘制，依赖于地图实例和 locations 数据
   useEffect(() => {
-    if (locations.length > 0) {
-      addMarkersToMap(locations);
+    console.log("Map.tsx: 绘制 Effect 被触发。");
+    // 4. 只有在地图实例存在时，才执行绘制
+    if (mapInstance) {
+      console.log("Map.tsx: 地图实例存在，正在调用 drawPathAndMarkers...", locations);
+      drawPathAndMarkers(mapInstance, locations);
+    } else {
+      console.log("Map.tsx: 绘制 Effect 被触发，但地图实例尚未准备好。");
     }
-  }, [locations]);
+  }, [mapInstance, locations]); // 5. 依赖于 mapInstance 和 locations
 
   return (
-    // 使用 wrapper div 来确保尺寸
     <div 
       id="map-container"
       ref={mapContainerRef} 
-      className={styles.mapWrapper} // 应用撑满容器的样式
+      className={styles.mapWrapper}
     />
   );
 }

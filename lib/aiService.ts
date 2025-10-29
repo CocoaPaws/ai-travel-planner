@@ -2,6 +2,9 @@
 
 import axios from 'axios';
 
+// ==========================================================
+// 类型定义保持不变，因为前后端都需要它们
+// ==========================================================
 export interface TripRequest {
   destination: string;
   days: number;
@@ -28,54 +31,41 @@ export interface DailyPlan {
 
 export interface AiTripPlan {
   daily_plan: DailyPlan[];
+  id?: string;
+  title?: string;
+  budget?: number;
+  generatedFrom?: string;
 }
 
+// ==========================================================
+// getAiTripPlan 函数被重写
+// ==========================================================
 export const getAiTripPlan = async (request: TripRequest): Promise<AiTripPlan> => {
-  const endpoint = 'https://bailian.aliyuncs.com/v2/app/completion';
-  
-  const prompt = `
-你是一个专业的旅行规划师。请根据以下要求，为我生成一份详细的旅行计划。
-严格按照以下JSON格式返回，不要包含任何额外说明或\`\`\`json标记。
-JSON结构为: {"daily_plan": [{"day": 数字, "activities": [{"location": "地点名称", "type": "景点|餐厅|住宿", "description": "简短描述", "estimated_cost": 数字, "coordinates": {"latitude": 纬度, "longitude": 经度}}]}]}
-
-旅行要求：
-- 目的地: ${request.destination}
-- 旅行天数: ${request.days}
-- 总预算: ${request.budget} 元人民币
-- 同行人员: ${request.companion}
-- 旅行偏好: ${request.preferences}
-  `;
-
   try {
-    console.log('正在向阿里云百炼发送请求...');
+    console.log("前端服务: 正在向我们的代理 API (/api/generate-plan) 发送请求...", request);
+
+    // 1. 发送 POST 请求到我们自己的后端 API 路由
+    const response = await axios.post('/api/generate-plan', {
+      // 将所有旅行要求包裹在一个对象里发送
+      tripRequest: request 
+    });
     
-    const response = await axios.post(
-      endpoint,
-      {
-        requestId: `req_${Date.now()}`,
-        prompt: prompt,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_ALIYUN_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    console.log("前端服务: 成功从代理 API 接收到数据:", response.data);
 
-    console.log('成功收到AI响应:', response.data);
-
-    const aiContent = response.data.Data.Text;
-
-    try {
-      const parsedPlan: AiTripPlan = JSON.parse(aiContent);
-      return parsedPlan;
-    } catch (parseError) {
-      console.error('解析AI返回的JSON失败:', parseError);
-      throw new Error('AI 返回的格式不正确。');
+    // 2. 检查响应数据是否存在，并直接返回它
+    // 我们期望的结构是 { data: { daily_plan: [...] } }
+    if (response.data && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error("从代理 API 返回的数据格式不正确");
     }
-  } catch (error) {
-    console.error('请求阿里云百炼服务失败:', error);
-    throw new Error('AI 行程规划失败，请稍后再试。');
+
+  } catch (error: any) {
+    // 错误处理：捕获请求我们自己 API 时发生的错误
+    console.error("前端服务: 请求代理 API 失败:", error.response?.data || error.message);
+    
+    // 将后端返回的错误信息（如果有的话）或一个通用错误信息抛出，以便 UI 层捕获
+    const errorMessage = error.response?.data?.error || '生成行程失败，请稍后再试。';
+    throw new Error(errorMessage);
   }
 };
