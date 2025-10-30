@@ -1,7 +1,7 @@
 // components/NewPlanForm.tsx (极简交互版)
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styles from './NewPlanForm.module.css';
 import { Input } from './ui/Input';
 import { Button } from './ui/Button';
@@ -30,10 +30,10 @@ export default function NewPlanForm({ onGenerate, onClose }: NewPlanFormProps) {
   const [isListening, setIsListening] = useState(false);
   
   // --- 语音识别逻辑 ---
-  const onSpeechResult = (text: string) => {
-    setMainQuery(text); // 将语音结果填充到主输入框
+  const onSpeechResult = useCallback((text: string) => {
+    setMainQuery(text);
     setIsListening(false);
-  };
+  }, []);
   const { start, stop, supported } = useSpeechRecognition(onSpeechResult);
   
   const toggleListening = () => {

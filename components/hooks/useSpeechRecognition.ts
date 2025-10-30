@@ -1,64 +1,73 @@
-// components/hooks/useSpeechRecognition.ts
+// components/hooks/useSpeechRecognition.ts (健壮版)
 
-import { useRef, useEffect } from 'react'; // 确保从 'react' 导入 hooks
+import { useRef, useEffect, useCallback } from 'react';
 
-/**
- * 一个自定义 React Hook，用于处理浏览器的 Web Speech API。
- * @param onResult - 当语音识别产生最终结果时调用的回调函数。
- */
 export function useSpeechRecognition(onResult: (text: string) => void) {
+  // recognitionRef 现在只用来存储当前的实例，以便可以中止它
   const recognitionRef = useRef<any>(null);
-
+  
+  // onResultCallbackRef 用于确保在事件监听器中始终能调用到最新的 onResult 函数
+  const onResultCallbackRef = useRef(onResult);
   useEffect(() => {
-    // 确保只在客户端（浏览器）环境中执行
-    if (typeof window === 'undefined') return;
+    onResultCallbackRef.current = onResult;
+  }, [onResult]);
 
-    // 检查浏览器是否支持 SpeechRecognition API
+  const start = useCallback(() => {
+    // 1. 每次开始时，都创建一个全新的实例
+    if (typeof window === 'undefined') return;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       console.warn("当前浏览器不支持 Web Speech API。");
       return;
     }
 
+    // 如果上一次的识别还在进行，先中止它
+    if (recognitionRef.current) {
+      recognitionRef.current.abort();
+    }
+
+    console.log("▶️ 创建新的 SpeechRecognition 实例并启动...");
     const recognition = new SpeechRecognition();
     recognition.lang = "zh-CN";
-    recognition.interimResults = false; // 我们只关心最终结果
-    recognition.continuous = false;   // 只识别一次，而不是连续识别
+    recognition.interimResults = false;
+    recognition.continuous = false;
+
+    // 2. 将所有事件监听器都绑定到这个新实例上
+    recognition.onaudiostart = () => console.log("🎤 麦克风已启动，正在监听...");
+    recognition.onspeechstart = () => console.log("🗣️ 检测到语音开始...");
+    recognition.onspeechend = () => console.log("🤫 语音结束。");
+    recognition.onnomatch = () => console.warn("🤷‍♂️ 未匹配到任何可识别的语音。");
 
     recognition.onresult = (event: any) => {
+      console.log("✅ 识别到结果！", event.results);
       const transcript = Array.from(event.results)
         .map((result: any) => result[0].transcript)
         .join("");
-      
-      onResult(transcript);
+      console.log("  - 识别出的文本:", transcript);
+      // 使用 ref 来调用回调，避免依赖问题
+      onResultCallbackRef.current(transcript);
     };
 
-    // 其他事件处理（可选，但有助于调试）
     recognition.onerror = (event: any) => {
-      console.error("语音识别错误:", event.error);
-    };
-
-    recognitionRef.current = recognition;
-
-    // 组件卸载时的清理函数
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.abort();
+      // 忽略 'aborted' 错误，因为这是我们主动触发的
+      if (event.error !== 'aborted') {
+        console.error("🔥 语音识别错误:", event.error);
       }
     };
-  }, [onResult]); // 依赖项数组，确保 onResult 变化时能重新设置
+    
+    // 3. 启动这个新实例
+    recognition.start();
+    // 4. 将这个新实例存入 ref，以便可以从外部中止
+    recognitionRef.current = recognition;
 
-  const start = () => {
+  }, []); // start 函数本身是稳定的，不需要依赖
+
+  const stop = useCallback(() => {
     if (recognitionRef.current) {
-      recognitionRef.current.start();
-    }
-  };
-  
-  const stop = () => {
-    if (recognitionRef.current) {
+      console.log("⏹️ 正在调用 recognition.stop()...");
       recognitionRef.current.stop();
     }
-  };
+  }, []);
   
   const supported = typeof window !== 'undefined' && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 

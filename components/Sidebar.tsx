@@ -12,9 +12,10 @@ interface SidebarProps {
   list: any[];
   onSelectPlan: (plan: any) => void;
   isLoadingHistory?: boolean;
+  onNewPlanClick: () => void; 
 }
 
-export default function Sidebar({ isOpen, setIsOpen, list, onSelectPlan, isLoadingHistory }: SidebarProps) {
+export default function Sidebar({ isOpen, setIsOpen, list, onSelectPlan, isLoadingHistory,onNewPlanClick  }: SidebarProps) {
   return (
     <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : styles.sidebarClosed}`}>
       {/* 展开/收起按钮 */}
@@ -26,7 +27,7 @@ export default function Sidebar({ isOpen, setIsOpen, list, onSelectPlan, isLoadi
 
       {/* 导航菜单 (未来可以添加点击事件) */}
       <nav className={styles.nav}>
-        <button className={styles.navButton}>
+        <button onClick={onNewPlanClick} className={styles.navButton}>
           <NewPlanIcon className={styles.navIcon} />
           {isOpen && <span className={styles.navText}>我的行程</span>}
         </button>

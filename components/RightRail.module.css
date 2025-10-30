@@ -1,15 +1,18 @@
-/* components/RightRail.module.css */
+/* components/RightRail.module.css (最终整合版) */
+
+/* === 1. 主容器布局 === */
 .rightRail {
   width: 24rem; /* 384px */
   flex-shrink: 0;
-  border-left: 1px solid #E2E8F0;
+  border-left: 1px solid var(--color-border);
   background-color: white;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem; /* 调整模块之间的间距 */
 }
 
+/* === 2. 顶部标题区域 === */
 .railHeader {
   display: flex;
   align-items: center;
@@ -17,7 +20,7 @@
 }
 
 .railTitle {
-  font-size: 0.875rem;
+  font-size: 0.875rem; /* 14px */
   color: var(--color-text-secondary);
 }
 
@@ -25,43 +28,30 @@
   font-weight: 500;
 }
 
-.fab { /* Floating Action Button */
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  width: 3.5rem; /* 56px */
-  height: 3.5rem;
-  border-radius: 9999px;
-  background-color: #0F172A; /* slate-900 */
-  color: white;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  border: none;
-  cursor: pointer;
-}
-
 .dayTitle {
   font-size: 1.25rem; /* 20px */
   margin-top: 0.25rem;
+  color: var(--color-text-primary);
 }
 
+/* === 3. 每日行程时间线 === */
 .timelineWrapper {
-  flex-grow: 1; /* 让时间线区域占据所有可用空间 */
-  overflow-y: auto; /* 如果内容超出，则滚动 */
-  margin-top: 1rem;
+  /* 这个区域的高度将由其内容决定 */
+  flex-shrink: 1; /* 允许在空间不足时被压缩 */
+  flex-grow: 1; /* 尝试占据可用空间 */
+  overflow-y: auto; /* 当内容超出时，允许垂直滚动 */
+  min-height: 100px; /* 给它一个最小高度，防止被过度压缩 */
+  padding-right: 0.5rem; /* 为滚动条留出空间 */
+  margin-right: -0.5rem; /* 隐藏滚动条的技巧 */
 }
 
 .activityCard {
-  background-color: var(--color-base); /* 使用米白色背景，与主背景融为一体 */
+  background-color: var(--color-base);
   padding: 0.75rem;
   border-radius: 0.5rem;
   border: 1px solid transparent;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-
 .activityCard:hover {
   border-color: var(--color-border);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
@@ -79,52 +69,138 @@
   flex-shrink: 0;
 }
 
-
-/* components/RightRail.module.css (添加新样式) */
-/* ... 已有样式 ... */
-
-.fabWrapper {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
+/* === 4. 整合的开销与预算模块 === */
+.expensesContainer {
+  flex-grow: 1; /* 占据所有剩余的垂直空间 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--color-surface); /* 白色背景 */
+  border-radius: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
 }
 
-.fab {
-  width: 3.5rem; /* 56px */
-  height: 3.5rem;
+.expensesHeader {
+  flex-shrink: 0;
+}
+
+/* 预算统计数字 */
+.budgetStats {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  flex-shrink: 0;
+}
+
+.spentValueLarge {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.totalBudgetValue {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+/* 共享进度条 */
+.progressBarContainer {
+  width: 100%;
+  height: 0.5rem;
+  background-color: #F1F5F9;
   border-radius: 9999px;
-  background-color: var(--color-primary); /* 使用主色调 */
-  color: white;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  margin-top: 0.75rem;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.progressBarFill {
+  height: 100%;
+  background-color: var(--color-primary);
+  border-radius: 9999px;
+  transition: width 0.5s ease-in-out;
+}
+
+/* 开销列表 */
+.expensesList {
+  overflow-y: auto;
+  margin-top: 1rem;
+  padding-right: 0.5rem; /* 为滚动条留出空间 */
+  margin-right: -0.5rem; /* 隐藏滚动条的技巧 */
+}
+
+.expenseItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+.expenseItem:last-child {
+  border-bottom: none;
+}
+
+.expenseCategoryIcon {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background-color: #F1F5F9;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.expenseDetails {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.expenseDescription {
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.expenseAmount {
+  font-weight: 600;
+  color: #DC2626;
+  white-space: nowrap;
+}
+
+.noExpensesText {
+  padding: 2rem 0;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.deleteButton {
+  background-color: transparent;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  color: #94A3B8;
+  padding: 0.25rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s;
 }
-
-.fab:hover {
-  transform: scale(1.1);
-  box-shadow: 0 10px 20px -3px rgb(0 0 0 / 0.2);
+.expenseItem:hover .deleteButton {
+  opacity: 1;
 }
-
-.fabTooltip {
-  position: absolute;
-  top: 50%;
-  right: 120%; /* 位于按钮左侧 */
-  transform: translateY(-50%);
-  padding: 0.25rem 0.75rem;
-  background-color: #0F172A; /* slate-900 */
-  color: white;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  white-space: nowrap;
-  opacity: 0; /* 默认隐藏 */
-  pointer-events: none; /* 不可点击 */
-  transition: opacity 0.2s;
-}
-
-.fabWrapper:hover .fabTooltip {
-  opacity: 1; /* 悬停时显示 */
+.deleteButton:hover {
+  color: #EF4444;
+  background-color: #FEE2E2;
 }
