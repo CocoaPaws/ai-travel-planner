@@ -1,5 +1,5 @@
 // components/Sidebar.tsx (持久化与交互修正版)
-
+import Link from 'next/link';
 import React from 'react';
 import styles from './Sidebar.module.css';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
@@ -29,12 +29,15 @@ export default function Sidebar({ isOpen, setIsOpen, list, onSelectPlan, isLoadi
       <nav className={styles.nav}>
         <button onClick={onNewPlanClick} className={styles.navButton}>
           <NewPlanIcon className={styles.navIcon} />
-          {isOpen && <span className={styles.navText}>我的行程</span>}
+          {isOpen && <span className={styles.navText}>新增行程</span>}
         </button>
-        <button className={styles.navButton}>
-          <BudgetIcon className={styles.navIcon} />
-          {isOpen && <span className={styles.navText}>预算管理</span>}
-        </button>
+        {/* 2. 用 Link 组件包裹整个按钮区域 */}
+        <Link href="/budget" className={styles.navLink}>
+          <div className={styles.navButton}> {/* 使用 div 避免 button 的嵌套问题 */}
+            <BudgetIcon className={styles.navIcon} />
+            {isOpen && <span className={styles.navText}>预算管理</span>}
+          </div>
+        </Link>
         <button className={styles.navButton}>
           <SettingsIcon className={styles.navIcon} />
           {isOpen && <span className={styles.navText}>偏好设置</span>}

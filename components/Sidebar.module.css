@@ -117,3 +117,9 @@
   white-space: nowrap;
   margin-top: 0.125rem; /* 可以在标题和元数据之间增加一点点间距 */
 }
+
+.navLink {
+  text-decoration: none; /* 移除链接的下划线 */
+  color: inherit; /* 继承父元素的文字颜色 */
+  font-size: 0.85rem;
+}

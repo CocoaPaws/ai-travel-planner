@@ -1,0 +1,89 @@
+/* app/budget/BudgetPage.module.css (按钮样式修正版) */
+
+/* === 1. 页面和卡片布局 (保持不变) === */
+.container { padding: 2rem; max-width: 800px; margin: 0 auto; }
+.pageTitle { font-size: 2rem; font-weight: 700; margin-bottom: 2rem; border-bottom: 1px solid var(--color-border); padding-bottom: 1rem; }
+.tripsList { display: flex; flex-direction: column; gap: 2rem; }
+.tripCard { background-color: white; border-radius: 0.75rem; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05); }
+.tripHeader { padding: 1rem 1.5rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; }
+.tripTitle { font-size: 1.25rem; font-weight: 600; }
+.tripTotal { font-size: 1rem; font-weight: 600; color: var(--color-text-primary); }
+.tripContent { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+.dayTitle { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; border-bottom: 1px solid #F1F5F9; padding-bottom: 0.5rem; }
+.noRecordText { color: var(--color-text-secondary); text-align: center; padding: 1rem; }
+.errorText { color: #DC2626; }
+.loadingText { color: var(--color-text-secondary); }
+
+/* === 2. 开销列表布局 === */
+.expensesList { display: flex; flex-direction: column; gap: 0.5rem; }
+
+/* 关键：expenseItem 布局，为按钮组留出固定空间 */
+.expenseItem {
+  display: grid;
+  /* 类别(100px) | 描述(自动填充) | 金额(auto) | 按钮组(80px) */
+  grid-template-columns: 100px 1fr auto 80px; 
+  gap: 1rem;
+  align-items: center;
+  font-size: 0.875rem;
+  padding: 0.25rem 0; /* 为编辑行增加一些垂直空间 */
+}
+
+.expenseCategory { background-color: #F1F5F9; padding: 0.125rem 0.5rem; border-radius: 9999px; text-align: center; font-size: 0.75rem; }
+.expenseDescription { color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.expenseAmount { font-weight: 500; text-align: right; color: #DC2626; }
+
+/* === 3. 编辑状态样式 === */
+.editingItem {
+  background-color: #F8FAFC; /* 给编辑行一个淡淡的背景色 */
+}
+
+.editInput {
+  width: 100%;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #CBD5E1;
+  border-radius: 0.375rem; /* 6px */
+  font-size: 0.875rem;
+  background-color: white;
+}
+.amountInput {
+  text-align: right;
+}
+
+/* === 4. 操作按钮样式 (核心修改) === */
+.actionButtons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* 统一的按钮基础样式 */
+.editButton,
+.deleteButton {
+  background-color: transparent; /* 无底色 */
+  border: none; /* 无边框 */
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem; /* 轻微圆角，用于悬停背景 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, color 0.2s;
+  
+  /* 始终可见，不再使用 opacity */
+  opacity: 1; 
+
+  /* 默认图标颜色为灰色 */
+  color: #94A3B8; /* slate-400 */
+}
+
+/* 编辑/保存/取消按钮的悬停效果 */
+.editButton:hover {
+  color: var(--color-text-primary); /* 悬停时图标变黑 */
+  background-color: #F1F5F9; /* 出现淡灰色背景 */
+}
+
+/* 删除按钮的悬停效果 */
+.deleteButton:hover {
+  color: #EF4444; /* 悬停时图标变红 */
+  background-color: #FEE2E2; /* 出现淡红色背景 */
+}
