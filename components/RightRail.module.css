@@ -1,15 +1,15 @@
-/* components/RightRail.module.css (最终整合版) */
+/* components/RightRail.module.css (最终完整版) */
 
 /* === 1. 主容器布局 === */
 .rightRail {
-  width: 24rem; /* 384px */
+  width: 25rem; /* 384px */
   flex-shrink: 0;
   border-left: 1px solid var(--color-border);
   background-color: white;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; /* 调整模块之间的间距 */
+  gap: 1.5rem;
 }
 
 /* === 2. 顶部标题区域 === */
@@ -18,43 +18,69 @@
   align-items: center;
   justify-content: space-between;
 }
-
 .railTitle {
   font-size: 0.875rem; /* 14px */
   color: var(--color-text-secondary);
 }
-
 .railValue {
   font-weight: 500;
 }
-
 .dayTitle {
-  font-size: 1.25rem; /* 20px */
+  font-size: 1.2rem; /* 20px */
   margin-top: 0.25rem;
   color: var(--color-text-primary);
 }
 
 /* === 3. 每日行程时间线 === */
 .timelineWrapper {
-  /* 这个区域的高度将由其内容决定 */
-  flex-shrink: 1; /* 允许在空间不足时被压缩 */
-  flex-grow: 1; /* 尝试占据可用空间 */
-  overflow-y: auto; /* 当内容超出时，允许垂直滚动 */
-  min-height: 100px; /* 给它一个最小高度，防止被过度压缩 */
-  padding-right: 0.5rem; /* 为滚动条留出空间 */
-  margin-right: -0.5rem; /* 隐藏滚动条的技巧 */
+  flex-shrink: 1;
+  overflow-y: auto;
+  min-height: 150px;
+  padding-right: 0.5rem;
+  margin-right: -0.5rem;
+}
+
+/* 包裹卡片的链接样式 */
+.activityLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  position: relative;
 }
 
 .activityCard {
   background-color: var(--color-base);
-  padding: 0.75rem;
+  padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   border: 1px solid transparent;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.2s ease-in-out;
 }
-.activityCard:hover {
+.activityLink:hover .activityCard {
   border-color: var(--color-border);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08);
+  transform: translateY(-2px);
+}
+
+/* 悬停提示文字 */
+.navigationTooltip {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  opacity: 0;
+  transform: translateX(5px);
+  transition: all 0.2s ease-in-out;
+  pointer-events: none;
+}
+.activityLink:hover .navigationTooltip {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .activityHeader {
@@ -62,6 +88,7 @@
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.25rem;
+  font-size: 0.8rem;
 }
 
 .activityTypeIcon {
@@ -69,13 +96,36 @@
   flex-shrink: 0;
 }
 
-/* === 4. 整合的开销与预算模块 === */
+.activityDescription {
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.2s ease;
+}
+
+/* 鼠标悬停卡片时显示完整描述 */
+.activityCard:hover .activityDescription {
+  white-space: normal;      /* 允许多行换行 */
+  overflow: visible;        /* 显示完整内容 */
+  background: #F8FAFC;      /* 可选：让背景更明显 */
+  padding: 0.25rem 0.5rem;  /* 可选：增加一点视觉空间 */
+  border-radius: 0.25rem;
+  z-index: 2;
+  position: relative;
+}
+
+
+/* === 4. 整合的开销与预算模块 (已填充) === */
 .expensesContainer {
-  flex-grow: 1; /* 占据所有剩余的垂直空间 */
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background-color: var(--color-surface); /* 白色背景 */
+  background-color: var(--color-surface);
   border-radius: 0.75rem;
   padding: 1rem;
   border: 1px solid var(--color-border);
@@ -85,7 +135,6 @@
   flex-shrink: 0;
 }
 
-/* 预算统计数字 */
 .budgetStats {
   display: flex;
   align-items: baseline;
@@ -95,18 +144,17 @@
 }
 
 .spentValueLarge {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-text-primary);
 }
 
 .totalBudgetValue {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--color-text-secondary);
 }
 
-/* 共享进度条 */
 .progressBarContainer {
   width: 100%;
   height: 0.5rem;
@@ -124,12 +172,11 @@
   transition: width 0.5s ease-in-out;
 }
 
-/* 开销列表 */
 .expensesList {
   overflow-y: auto;
   margin-top: 1rem;
-  padding-right: 0.5rem; /* 为滚动条留出空间 */
-  margin-right: -0.5rem; /* 隐藏滚动条的技巧 */
+  padding-right: 0.5rem;
+  margin-right: -0.5rem;
 }
 
 .expenseItem {
@@ -165,6 +212,7 @@
 
 .expenseDescription {
   font-weight: 500;
+  font-size: 0.9rem;
   color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;

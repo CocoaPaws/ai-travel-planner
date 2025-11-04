@@ -17,7 +17,7 @@
  * 2. 地图卡片和操作栏保持固定，不参与空间的弹性分配。
  */
 .mapCard {
-  height: 40vh; /* 建议使用 vh，使其高度能随浏览器窗口变化，更具响应性 */
+  height: 50vh; /* 建议使用 vh，使其高度能随浏览器窗口变化，更具响应性 */
   min-height: 250px;
   flex-shrink: 0; /* 关键：防止此元素在空间不足时被压缩 */
 }
@@ -82,6 +82,8 @@
   gap: 0.75rem;
   /* 允许内容区在必要时被压缩，防止溢出 */
   min-width: 0; 
+  width: 100%; /* ✅ 关键：允许内部 grid 撑满父容器 */
+  flex: 1;     /* ✅ 关键：让 grid 有足够空间计算列数 */
 }
 
 .dayTitle {
@@ -98,26 +100,20 @@
 }
 
 .itemsGrid {
-   display: grid;
-   grid-template-columns: repeat(1, minmax(0, 1fr));
-   gap: 0.75rem;
-}
-@media (min-width: 640px) {
-  .itemsGrid {
-    /* 在较宽屏幕上，根据可用空间显示2或3列 */
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  }
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.5rem;
 }
 
 .item {
-   display: flex;
-   align-items: center;
-   gap: 0.5rem;
-   font-size: 0.875rem;
-   color: #334155;
-   /* 防止过长的地点名称破坏布局 */
-   overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;  /* 稍微小一点 */
+  color: #334155;
+  overflow: hidden;
 }
+
 .item span:last-child {
   white-space: nowrap;
   overflow: hidden;
@@ -125,14 +121,14 @@
 }
 
 .itemIcon {
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   width: 1.5rem;
-   height: 1.5rem;
-   flex-shrink: 0;
-   border-radius: 0.25rem;
-   background-color: #F1F5F9;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  border-radius: 0.25rem;
+  background-color: #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .chartContainer {

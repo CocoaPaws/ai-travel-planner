@@ -5,8 +5,6 @@
   background-color: #F8FAFC; /* slate-50 */
 }
 
-/* 我们可以直接在 appContainer 中放置 Sidebar 和 contentArea，不再需要 mainWrapper */
-/* 但为了减少代码改动，我们暂时保留 mainWrapper，它现在和 appContainer 效果几乎一样 */
 .mainWrapper {
   display: flex;
   flex-grow: 1;

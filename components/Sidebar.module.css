@@ -10,11 +10,11 @@
 }
 
 .sidebarOpen {
-  width: 15rem; /* 240px */
+  width: 17rem; /* 240px */
 }
 
 .sidebarClosed {
-  width: 4rem; /* 64px */
+  width: 5rem; /* 64px */
 }
 
 .nav {
@@ -86,10 +86,13 @@
 
 .cardWrapper {
   cursor: pointer;
-  border-radius: 0.5rem; /* 8px */
+  border-radius: 0.5rem;
+  transition: all 0.25s ease;
 }
 .cardWrapper:hover {
-  background-color: #F8FAFC; /* slate-50 */
+  background-color: #EFF6FF; /* 淡蓝色 */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.1); /* 蓝色阴影 */
 }
 
 .planCard {

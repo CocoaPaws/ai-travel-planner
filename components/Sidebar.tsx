@@ -38,10 +38,6 @@ export default function Sidebar({ isOpen, setIsOpen, list, onSelectPlan, isLoadi
             {isOpen && <span className={styles.navText}>预算管理</span>}
           </div>
         </Link>
-        <button className={styles.navButton}>
-          <SettingsIcon className={styles.navIcon} />
-          {isOpen && <span className={styles.navText}>偏好设置</span>}
-        </button>
       </nav>
       
       {/* 最近计划区域 */}

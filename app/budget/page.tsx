@@ -1,214 +1,217 @@
-// app/budget/page.tsx
 'use client';
 
-import React from 'react'; // 确保 React 的导入是正确的
-import { useState, useEffect } from 'react'; // 确保 hooks 的导入是正确的
+import React, { useEffect, useMemo, useState } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/utils';
 import TripExpensesCard from './TripExpensesCard';
 import styles from './BudgetPage.module.css';
-import { EditIcon } from '@/components/Icons';
-// 定义我们将要获取的数据的 TypeScript 类型，增强代码健壮性
-interface Expense {
-  id: number;
-  amount: number;
-  category: string;
-  description: string;
-  trip_day: number;
-}
+import {
+  ResponsiveContainer,
+  PieChart, Pie, Cell, Tooltip,
+  BarChart, Bar, XAxis, YAxis,
+} from 'recharts';
 
-interface TripWithExpenses {
+interface TripLite {
   id: number;
   title: string;
   created_at: string;
+}
+
+interface Expense {
+  id: number;
+  trip_id: number;
+  trip_day: number;
+  category: string | null;
+  description: string | null;
+  amount: number;
+  created_at: string;
+}
+
+interface TripWithExpenses extends TripLite {
   expenses: Expense[];
 }
 
+const COLORS = ['#60a5fa', '#34d399', '#facc15', '#f87171', '#a78bfa', '#14b8a6', '#f472b6', '#fb7185'];
+
 export default function BudgetPage() {
-  // --- State 管理 ---
-  const [tripsWithExpenses, setTripsWithExpenses] = useState<TripWithExpenses[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const supabase = createSupabaseBrowserClient();
+  const [trips, setTrips] = useState<TripLite[]>([]);
+  const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
+  const [selectedTrip, setSelectedTrip] = useState<TripWithExpenses | null>(null);
+  const [loadingTrips, setLoadingTrips] = useState(true);
+  const [loadingExpenses, setLoadingExpenses] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingExpenseId, setEditingExpenseId] = useState<number | null>(null);
-  // --- 数据获取 Effect ---
+
+  // 加载行程列表
   useEffect(() => {
-    const fetchAllData = async () => {
-      setIsLoading(true);
-      setError(null);
+    const loadTrips = async () => {
       try {
-        const supabase = createSupabaseBrowserClient();
-        const { data: { user } } = await supabase.auth.getUser();
-
-        if (!user) {
-          setError("请先登录以查看预算信息。");
-          return;
-        }
-
-        // 使用 JOIN 查询一次性获取所有行程及其关联的所有开销
-        const { data, error: fetchError } = await supabase
+        setLoadingTrips(true);
+        const { data: auth } = await supabase.auth.getUser();
+        if (!auth.user) return setError('请先登录以查看预算信息。');
+        const { data, error: tripsErr } = await supabase
           .from('trips')
-          .select(`
-            id,
-            title:generated_plan->>title,
-            created_at,
-            expenses (
-              id,
-              amount,
-              category,
-              description,
-              trip_day
-            )
-          `)
-          .order('created_at', { ascending: false }); // 最新的行程在最前面
-
-        if (fetchError) {
-          throw fetchError;
-        }
-
-        console.log("获取到的所有行程及开销:", data);
-        if (data) {
-          setTripsWithExpenses(data);
-        }
-
-      } catch (err: any) {
-        console.error("获取预算数据失败:", err);
-        setError("加载数据失败，请稍后重试。");
+          .select('id, created_at, generated_plan')
+          .order('created_at', { ascending: false });
+        if (tripsErr) throw tripsErr;
+        const normalized = (data || []).map((t: any) => ({
+          id: t.id,
+          created_at: t.created_at,
+          title: (t.generated_plan?.title ?? t.generated_plan?.['title']) || '未命名行程',
+        }));
+        setTrips(normalized);
+        if (normalized.length > 0) setSelectedTripId(normalized[0].id);
+      } catch (e: any) {
+        setError('加载行程失败，请稍后重试。');
       } finally {
-        setIsLoading(false);
+        setLoadingTrips(false);
       }
     };
+    loadTrips();
+  }, []);
 
-    fetchAllData();
-  }, []); // 空依赖数组 `[]` 确保这个 effect 只在组件首次挂载时运行一次
+  // 加载对应行程的支出
+  useEffect(() => {
+    const loadExpensesForTrip = async (tripId: number) => {
+      try {
+        setLoadingExpenses(true);
+        const tripInfo = trips.find(t => t.id === tripId);
+        if (!tripInfo) return;
+        const { data: expenses, error: expErr } = await supabase
+          .from('expenses')
+          .select('id, trip_id, trip_day, category, description, amount, created_at')
+          .eq('trip_id', tripId)
+          .order('trip_day', { ascending: true })
+          .order('created_at', { ascending: true });
+        if (expErr) throw expErr;
+        setSelectedTrip({ ...tripInfo, expenses: expenses || [] });
+      } catch (e: any) {
+        setError('加载费用失败，请稍后重试。');
+      } finally {
+        setLoadingExpenses(false);
+      }
+    };
+    if (selectedTripId != null) loadExpensesForTrip(selectedTripId);
+  }, [selectedTripId, trips]);
 
-  // --- 渲染逻辑 ---
-
-  // 1. 处理加载状态
-  if (isLoading) {
-    return (
-      <div className={styles.container}>
-        <h1 className={styles.pageTitle}>预算管理中心</h1>
-        <p className={styles.loadingText}>正在加载预算数据...</p>
-      </div>
-    );
-  }
-
-  // 2. 处理错误状态
-  if (error) {
-    return (
-      <div className={styles.container}>
-        <h1 className={styles.pageTitle}>预算管理中心</h1>
-        <p className={styles.errorText}>{error}</p>
-      </div>
-    );
-  }
-
-    // ================== 1. 创建删除处理函数 ==================
-  const handleDeleteExpense = async (expenseIdToDelete: number, tripId: number) => {
-    // a. 弹出确认框
-    if (!window.confirm("您确定要删除这条开销记录吗？此操作无法撤销。")) {
-      return;
+  const totalSpent = useMemo(() => selectedTrip?.expenses.reduce((s, e) => s + Number(e.amount || 0), 0) || 0, [selectedTrip]);
+  const dailyTotals = useMemo(() => {
+    if (!selectedTrip) return [];
+    const byDay = new Map<number, number>();
+    for (const e of selectedTrip.expenses) {
+      const day = e.trip_day || 0;
+      byDay.set(day, (byDay.get(day) || 0) + Number(e.amount || 0));
     }
+    return Array.from(byDay.entries()).sort((a, b) => a[0] - b[0]).map(([day, total]) => ({ day: `Day ${day}`, total }));
+  }, [selectedTrip]);
+  const avgPerDay = useMemo(() => dailyTotals.length ? totalSpent / dailyTotals.length : 0, [totalSpent, dailyTotals]);
+  const maxPerDay = useMemo(() => dailyTotals.length ? Math.max(...dailyTotals.map(d => d.total)) : 0, [dailyTotals]);
+  const pieData = useMemo(() => {
+    if (!selectedTrip) return [];
+    const byCat = new Map<string, number>();
+    selectedTrip.expenses.forEach(e => {
+      const key = (e.category || '其他').trim();
+      byCat.set(key, (byCat.get(key) || 0) + Number(e.amount || 0));
+    });
+    return Array.from(byCat.entries()).map(([name, value]) => ({ name, value }));
+  }, [selectedTrip]);
 
-    try {
-      const supabase = createSupabaseBrowserClient();
-      
-      // b. 调用 Supabase API 删除数据
-      const { error } = await supabase
-        .from('expenses')
-        .delete()
-        .eq('id', expenseIdToDelete);
-
-      if (error) throw error;
-
-      // c. 实时更新前端 UI，无需刷新
-      setTripsWithExpenses(currentTrips => {
-        // 创建一个深拷贝以避免直接修改 state
-        const updatedTrips = JSON.parse(JSON.stringify(currentTrips));
-        // 找到对应的行程
-        const targetTrip = updatedTrips.find((t: TripWithExpenses) => t.id === tripId);
-        if (targetTrip) {
-          // 从该行程的 expenses 数组中过滤掉被删除的项
-          targetTrip.expenses = targetTrip.expenses.filter((exp: Expense) => exp.id !== expenseIdToDelete);
-        }
-        return updatedTrips;
-      });
-      
-      console.log(`成功删除开销 ID: ${expenseIdToDelete}`);
-
-    } catch (error: any) {
-      console.error("删除开销失败:", error);
-      alert(`删除失败: ${error.message}`);
-    }
-  };
-  // ================== 2. 创建更新处理函数 ==================
   const handleUpdateExpense = async (updatedExpense: Expense) => {
-    if (!updatedExpense.id) return;
-
-    try {
-      const supabase = createSupabaseBrowserClient();
-      
-      // a. 准备要更新的数据 (不包括 id 和 created_at 等)
-      const { id, ...dataToUpdate } = updatedExpense;
-
-      // b. 调用 Supabase API 更新数据，并使用 .select() 返回更新后的行
-      const { data, error } = await supabase
-        .from('expenses')
-        .update(dataToUpdate)
-        .eq('id', id)
-        .select();
-
-      if (error) throw error;
-      if (!data || data.length === 0) throw new Error("更新后未能返回数据");
-
-      const returnedExpense = data[0];
-
-      // c. 实时更新前端 UI
-      setTripsWithExpenses(currentTrips => {
-        const updatedTrips = JSON.parse(JSON.stringify(currentTrips));
-        // 遍历所有行程和开销，找到并替换被更新的那一项
-        for (const trip of updatedTrips) {
-          const expenseIndex = trip.expenses.findIndex((exp: Expense) => exp.id === returnedExpense.id);
-          if (expenseIndex !== -1) {
-            trip.expenses[expenseIndex] = returnedExpense;
-            break; // 找到后即可跳出循环
-          }
-        }
-        return updatedTrips;
-      });
-
-      // d. 退出编辑模式
-      setEditingExpenseId(null);
-      console.log("成功更新开销:", returnedExpense);
-
-    } catch (error: any) {
-      console.error("更新开销失败:", error);
-      alert(`更新失败: ${error.message}`);
-    }
+    const { id, ...rest } = updatedExpense;
+    const { data, error: err } = await supabase.from('expenses').update(rest).eq('id', id).select();
+    if (err) return alert('更新失败');
+    setSelectedTrip(prev => prev ? { ...prev, expenses: prev.expenses.map(e => e.id === id ? data[0] : e) } : prev);
+    setEditingExpenseId(null);
   };
-  // ==========================================================
-  // 3. 正常渲染
+
+  const handleDeleteExpense = async (expenseId: number) => {
+    if (!confirm('确认删除？')) return;
+    const { error: err } = await supabase.from('expenses').delete().eq('id', expenseId);
+    if (err) return alert('删除失败');
+    setSelectedTrip(prev => prev ? { ...prev, expenses: prev.expenses.filter(e => e.id !== expenseId) } : prev);
+  };
+
+  if (loadingTrips) return <div className={styles.pageContainer}>加载中...</div>;
+  if (error) return <div className={styles.pageContainer}>{error}</div>;
+
   return (
-    <div className={styles.container}>
-      <h1 className={styles.pageTitle}>我的预算管理</h1>
-      
-      <div className={styles.tripsList}>
-        {tripsWithExpenses.length > 0 ? (
-          // 遍历数据，为每个行程渲染一个 TripExpensesCard
-          tripsWithExpenses.map(trip => (
-            <TripExpensesCard key={trip.id} trip={trip} 
-                onDeleteExpense={handleDeleteExpense}
-                editingExpenseId={editingExpenseId}
-                onSetEditingExpenseId={setEditingExpenseId}
-                onUpdateExpense={handleUpdateExpense}
-            />
-          ))
-        ) : (
-          // 如果没有任何行程数据
-          <div className={styles.noRecordText} style={{ textAlign: 'center', padding: '2rem' }}>
-            <h2>您还没有任何行程记录</h2>
-            <p style={{ marginTop: '0.5rem' }}>点击左侧“我的行程”按钮，开始创建您的第一个AI旅行计划吧！</p>
+    <div className={styles.pageContainer}>
+      {/* 顶部：行程选择 */}
+      <div className={styles.header}>
+        <h1 className="text-2xl font-semibold">预算管理</h1>
+        <select value={selectedTripId ?? ''} onChange={(e) => setSelectedTripId(Number(e.target.value))} className={styles.select}>
+          {trips.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
+        </select>
+      </div>
+
+      {/* 主体 */}
+      <div className={styles.mainGrid}>
+        {/* 左栏 */}
+        <div className={`${styles.leftCol} ${styles.scrollbar}`}>
+          {loadingExpenses ? <p>加载中...</p> : selectedTrip &&
+            <TripExpensesCard
+              trip={selectedTrip}
+              editingExpenseId={editingExpenseId}
+              onSetEditingExpenseId={setEditingExpenseId}
+              onUpdateExpense={handleUpdateExpense}
+              onDeleteExpense={(id) => handleDeleteExpense(id)}
+            />}
+        </div>
+
+        {/* 右栏 */}
+        <div className={styles.rightCol}>
+          {/* 顶部统计卡 */}
+          <div className={`${styles.statGrid} ${styles.fadeIn}`}>
+            <div className={`${styles.statCard} ${styles.fadeDelay1}`}>
+              <div className={styles.statLabel}>总支出</div>
+              <div className={styles.statValue} style={{ color: '#ef4444' }}>¥{totalSpent.toFixed(2)}</div>
+            </div>
+            <div className={`${styles.statCard} ${styles.fadeDelay2}`}>
+              <div className={styles.statLabel}>平均每日</div>
+              <div className={styles.statValue} style={{ color: '#2563eb' }}>¥{avgPerDay.toFixed(2)}</div>
+            </div>
+            <div className={`${styles.statCard} ${styles.fadeDelay3}`}>
+              <div className={styles.statLabel}>最高单日</div>
+              <div className={styles.statValue} style={{ color: '#10b981' }}>¥{maxPerDay.toFixed(2)}</div>
+            </div>
           </div>
-        )}
+
+          {/* 分类支出饼图 */}
+          <div className={`${styles.cardShadow} ${styles.fadeIn} ${styles.fadeDelay1}`}>
+            <div className="p-4 border-b border-slate-200/70">
+              <div className="font-semibold">分类支出占比</div>
+            </div>
+            <div className="p-4" style={{ height: 260 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={90} label>
+                    {pieData.map((_, i) => (
+                      <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* 每日支出趋势 */}
+          <div className={`${styles.cardShadow} ${styles.fadeIn} ${styles.fadeDelay2}`}>
+            <div className="p-4 border-b border-slate-200/70">
+              <div className="font-semibold">每日支出趋势</div>
+            </div>
+            <div className="p-4" style={{ height: 260 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dailyTotals}>
+                  <XAxis dataKey="day" stroke="#94a3b8" />
+                  <YAxis stroke="#94a3b8" />
+                  <Tooltip />
+                  <Bar dataKey="total" fill="#60a5fa" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import React from 'react';
 import styles from './RightRail.module.css';
 import timelineStyles from './TripTimeline.module.css';
 import { Button } from './ui/Button';
-import { CurrencyYenIcon, MapPinIcon, BuildingStorefrontIcon, HomeIcon, CameraIcon, TrashIcon } from './Icons';
+import { CurrencyYenIcon, MapPinIcon, BuildingStorefrontIcon, HomeIcon, CameraIcon, TrashIcon, NavigationIcon } from './Icons';
 
 interface RightRailProps {
   selectedDayData: any;
@@ -67,49 +67,59 @@ export default function RightRail({ selectedDayData, planBudget, expenses, onOpe
         </Button>
       </div>
       
-      {/* 时间线展示 */}
+      {/* 时间线展示 (卡片即链接版) */}
       <div className={styles.timelineWrapper}>
         <div className={timelineStyles.activitiesContainer}>
           {activities.map((activity: any, index: number) => (
             <div key={index} className={timelineStyles.activityItem}>
               <div className={timelineStyles.activityDot}></div>
-              <div className={styles.activityCard}>
-                <div className={styles.activityHeader}>
-                  <ActivityIcon type={activity.type} />
-                  <h4 className={timelineStyles.activityLocation}>{activity.location}</h4>
-                </div>
-                <p className={styles.activityDescription}>{activity.description}</p>
-                {activity.estimated_cost > 0 && (
-                  <div className={timelineStyles.activityCost}>
-                    <CurrencyYenIcon className={timelineStyles.costIcon} />
-                    <span>预估花费: {activity.estimated_cost} 元</span>
+              
+              {/* --- 关键修改：用 <a> 标签包裹整个卡片 --- */}
+              <a
+                href={`https://www.amap.com/search?query=${encodeURIComponent(activity.location)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.activityLink}
+                title={`导航到 ${activity.location}`}
+              >
+                <div className={styles.activityCard}>
+                  <div className={styles.activityHeader}>
+                    <ActivityIcon type={activity.type} />
+                    <h4 className={timelineStyles.activityLocation}>{activity.location}</h4>
                   </div>
-                )}
-              </div>
+                  <p className={styles.activityDescription}>{activity.description}</p>
+                  {activity.estimated_cost > 0 && (
+                    <div className={timelineStyles.activityCost}>
+                      <CurrencyYenIcon className={timelineStyles.costIcon} />
+                      <span>预估花费: {activity.estimated_cost} 元</span>
+                    </div>
+                  )}
+
+                  {/* 新增的悬停文字提示 */}
+                  <div className={styles.navigationTooltip}>到这去 →</div>
+                </div>
+              </a>
+              {/* --- 结束关键修改 --- */}
             </div>
           ))}
         </div>
       </div>
       
-      {/* ================== 新的整合开销/预算模块 ================== */}
+      {/* 整合的开销/预算模块 */}
       <div className={styles.expensesContainer}>
-          
         <div className={styles.expensesHeader}>
           <h4 className={styles.railTitle}>Day {currentDay} 预算追踪</h4>
         </div>
-
         <div className={styles.budgetStats}>
           <div className={styles.spentValueLarge}>¥{todaySpent.toFixed(2)}</div>
           <div className={styles.totalBudgetValue}>/ 预估 ¥{dailyBudgetEstimate}</div>
         </div>
-
         <div className={styles.progressBarContainer}>
           <div 
             className={styles.progressBarFill}
             style={{ width: `${progressPercentage}%` }}
           ></div>
         </div>
-        
         <div className={styles.expensesList}>
           {todayExpenses.length > 0 ? (
             todayExpenses.map(expense => (
@@ -133,7 +143,6 @@ export default function RightRail({ selectedDayData, planBudget, expenses, onOpe
           )}
         </div>
       </div>
-      {/* ========================================================= */}
     </aside>
   );
 }

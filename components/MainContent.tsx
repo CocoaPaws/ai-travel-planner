@@ -87,7 +87,6 @@ return (
         <h2 className={styles.planTitle}>{plan.title}</h2>
         <div className={styles.actionBarButtons}>
           <Button variant="outline" onClick={onSave}>保存计划</Button>
-          <Button onClick={onChat}>与 AI 聊天</Button>
         </div>
       </div>
 

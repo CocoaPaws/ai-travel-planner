@@ -1,89 +1,289 @@
-/* app/budget/BudgetPage.module.css (按钮样式修正版) */
+/* ===== 页面容器与头部 ===== */
+.pageContainer {
+  min-height: 100vh;
+  background: #f8fafc;
+  color: #1e293b;
+  padding: 1.5rem;
+}
 
-/* === 1. 页面和卡片布局 (保持不变) === */
-.container { padding: 2rem; max-width: 800px; margin: 0 auto; }
-.pageTitle { font-size: 2rem; font-weight: 700; margin-bottom: 2rem; border-bottom: 1px solid var(--color-border); padding-bottom: 1rem; }
-.tripsList { display: flex; flex-direction: column; gap: 2rem; }
-.tripCard { background-color: white; border-radius: 0.75rem; border: 1px solid var(--color-border); box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05); }
-.tripHeader { padding: 1rem 1.5rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; }
-.tripTitle { font-size: 1.25rem; font-weight: 600; }
-.tripTotal { font-size: 1rem; font-weight: 600; color: var(--color-text-primary); }
-.tripContent { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
-.dayTitle { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; border-bottom: 1px solid #F1F5F9; padding-bottom: 0.5rem; }
-.noRecordText { color: var(--color-text-secondary); text-align: center; padding: 1rem; }
-.errorText { color: #DC2626; }
-.loadingText { color: var(--color-text-secondary); }
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
 
-/* === 2. 开销列表布局 === */
-.expensesList { display: flex; flex-direction: column; gap: 0.5rem; }
+.select {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  transition: all 0.2s ease;
+}
+.select:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
 
-/* 关键：expenseItem 布局，为按钮组留出固定空间 */
+/* ===== 主体网格 ===== */
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+@media (min-width: 1024px) {
+  .mainGrid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ===== 左栏 ===== */
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  max-height: 80vh;
+  padding-right: 0.5rem;
+  scroll-behavior: smooth;
+}
+
+/* ===== 右栏（sticky） ===== */
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: sticky;
+  top: 1.5rem;
+}
+
+/* ===== 卡片阴影（带内边距优化） ===== */
+.cardShadow {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+  padding: 1rem; /* 增加内边距 */
+}
+.cardShadow:hover {
+  box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+}
+
+/* ===== 图表内容间距优化 ===== */
+.cardShadow .p-4 {
+  padding: 1.25rem !important;
+}
+.cardShadow .border-b {
+  margin-bottom: 0.75rem;
+}
+.cardShadow .recharts-wrapper {
+  padding: 0.5rem 0.75rem;
+}
+
+/* ===== 统计卡片网格（移到右栏顶部 + 动画） ===== */
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.statCard {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.04);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  opacity: 0;
+  animation: fadeInUp 0.6s ease forwards;
+}
+.statCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 14px rgba(0,0,0,0.06);
+}
+.statLabel {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+.statValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
+
+/* 延迟动画 */
+.fadeDelay1 { animation-delay: 0.1s; }
+.fadeDelay2 { animation-delay: 0.25s; }
+.fadeDelay3 { animation-delay: 0.4s; }
+
+
+/* ===== Trip 卡片（左栏） ===== */
+.tripCard {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.tripCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.07);
+}
+.tripHeader {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tripTitle { font-size: 1.125rem; font-weight: 700; }
+.tripMeta { font-size: 0.75rem; color: #64748b; }
+.tripTotal { font-size: 1rem; font-weight: 700; color: #0f172a; }
+.tripContent { padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+
+/* Day 标题 + 进度条 */
+.dayHeader {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;
+}
+.dayTitle {
+  font-size: 1rem; font-weight: 700;
+  border-left: 4px solid #2563eb; padding-left: 8px; line-height: 1.1;
+}
+.dayMeta { font-size: 0.8rem; color: #64748b; }
+.progressBar { height: 6px; background: #F1F5F9; border-radius: 4px; overflow: hidden; }
+.progressFill {
+  height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  transition: width 0.3s ease;
+}
+
+/* 时间线式开销列表 */
+.expensesList {
+  position: relative;
+  display: flex; flex-direction: column; gap: 0.25rem;
+  margin-left: 0.75rem; padding-left: 0.75rem;
+}
+.expensesList::before {
+  content: ""; position: absolute; left: 0; top: 0.4rem; bottom: 0.4rem;
+  width: 2px; background: #E2E8F0; border-radius: 2px;
+}
+
+/* 单条开销行（兼容编辑态） */
 .expenseItem {
   display: grid;
-  /* 类别(100px) | 描述(自动填充) | 金额(auto) | 按钮组(80px) */
-  grid-template-columns: 100px 1fr auto 80px; 
+  grid-template-columns: 140px 1fr auto 88px;
   gap: 1rem;
   align-items: center;
-  font-size: 0.875rem;
-  padding: 0.25rem 0; /* 为编辑行增加一些垂直空间 */
+  font-size: 0.9rem;
+  padding: 0.5rem 0.5rem;
+  position: relative;
+  border-radius: 0.5rem;
+  transition: background 0.2s ease;
+}
+.expenseItem:hover { background: #f0f9ff; }
+
+.expenseItem::before {
+  content: ""; position: absolute; left: -0.75rem; top: 0.9rem;
+  width: 8px; height: 8px; background: #3b82f6; border-radius: 9999px;
+  box-shadow: 0 0 0 3px #DBEAFE;
 }
 
-.expenseCategory { background-color: #F1F5F9; padding: 0.125rem 0.5rem; border-radius: 9999px; text-align: center; font-size: 0.75rem; }
-.expenseDescription { color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.expenseAmount { font-weight: 500; text-align: right; color: #DC2626; }
-
-/* === 3. 编辑状态样式 === */
-.editingItem {
-  background-color: #F8FAFC; /* 给编辑行一个淡淡的背景色 */
+.expenseCategory {
+  background-color: #F1F5F9; padding: 0.125rem 0.5rem; border-radius: 9999px;
+  text-align: left; font-size: 0.8rem; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.expenseDescription { color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.expenseAmount { font-weight: 700; text-align: right; color: #334155; }
 
+/* 编辑态输入 */
+.editingItem { background-color: #F8FAFC; }
 .editInput {
-  width: 100%;
-  padding: 0.25rem 0.5rem;
-  border: 1px solid #CBD5E1;
-  border-radius: 0.375rem; /* 6px */
-  font-size: 0.875rem;
-  background-color: white;
+  width: 100%; padding: 0.35rem 0.5rem; border: 1px solid #CBD5E1;
+  border-radius: 0.375rem; font-size: 0.875rem; background-color: white;
 }
-.amountInput {
-  text-align: right;
-}
+.amountInput { text-align: right; }
 
-/* === 4. 操作按钮样式 (核心修改) === */
+/* 操作按钮 */
+.actionButtons { display: flex; gap: 0.5rem; justify-content: flex-end; }
+.editButton, .deleteButton {
+  background: transparent; border: none; cursor: pointer; padding: 0.35rem 0.5rem;
+  border-radius: 0.375rem; color: #64748b; transition: background-color 0.2s, color 0.2s;
+}
+.editButton:hover { color: #0f172a; background-color: #F1F5F9; }
+.deleteButton:hover { color: #EF4444; background-color: #FEE2E2; }
+
+/* 状态文本 */
+.noRecordText { color: #64748b; text-align: center; padding: 1rem; }
+.errorText { color: #DC2626; }
+.loadingText { color: #64748b; }
+
+/* 自定义滚动条 */
+.scrollbar::-webkit-scrollbar { width: 8px; }
+.scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* === 淡入上浮动画（左右栏通用） === */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fadeIn { opacity: 0; animation: fadeInUp 0.6s ease forwards; }
+.fadeDelay1 { animation-delay: 0.1s; }
+.fadeDelay2 { animation-delay: 0.2s; }
+.fadeDelay3 { animation-delay: 0.3s; }
+
+
+/* ====== 操作图标按钮样式优化 ====== */
 .actionButtons {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
   justify-content: flex-end;
+  gap: 0.5rem;
 }
 
-/* 统一的按钮基础样式 */
+/* 通用按钮基础风格 */
 .editButton,
 .deleteButton {
-  background-color: transparent; /* 无底色 */
-  border: none; /* 无边框 */
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 0.25rem; /* 轻微圆角，用于悬停背景 */
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  outline: none;
+  background: #f8fafc;
+  border-radius: 9999px; /* 圆形 */
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s, color 0.2s;
-  
-  /* 始终可见，不再使用 opacity */
-  opacity: 1; 
-
-  /* 默认图标颜色为灰色 */
-  color: #94A3B8; /* slate-400 */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #64748b; /* slate-500 */
 }
 
-/* 编辑/保存/取消按钮的悬停效果 */
-.editButton:hover {
-  color: var(--color-text-primary); /* 悬停时图标变黑 */
-  background-color: #F1F5F9; /* 出现淡灰色背景 */
+/* Hover & Active 状态 */
+.editButton,
+.deleteButton {
+  width: 2rem;
+  height: 2rem;
+  background: #f8fafc;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s ease;
 }
 
-/* 删除按钮的悬停效果 */
+
+.editButton:active,
+.deleteButton:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* 区分颜色倾向（删除为红） */
 .deleteButton:hover {
-  color: #EF4444; /* 悬停时图标变红 */
-  background-color: #FEE2E2; /* 出现淡红色背景 */
+  background: #fee2e2;
+  color: #b91c1c;
 }
+
+.editButton:hover {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+

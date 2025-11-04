@@ -1,16 +1,15 @@
-// app/budget/TripExpensesCard.tsx (编辑功能版)
-
-import React from 'react';
+import React, { useMemo } from 'react';
 import styles from './BudgetPage.module.css';
-import ExpenseRow from './ExpenseRow'; // 1. 导入新的行组件
+import ExpenseRow from './ExpenseRow';
 
-// 2. 类型定义保持清晰
 interface Expense {
   id: number;
-  amount: number;
-  category: string;
-  description: string;
+  trip_id: number;
   trip_day: number;
+  category: string | null;
+  description: string | null;
+  amount: number;
+  created_at: string;
 }
 
 interface TripWithExpenses {
@@ -20,72 +19,84 @@ interface TripWithExpenses {
   expenses: Expense[];
 }
 
-// 3. 更新 Props 接口，接收所有与编辑相关的 state 和函数
 interface TripExpensesCardProps {
   trip: TripWithExpenses;
   editingExpenseId: number | null;
   onSetEditingExpenseId: (id: number | null) => void;
   onUpdateExpense: (expense: Expense) => void;
-  onDeleteExpense: (expenseId: number, tripId: number) => void;
+  onDeleteExpense: (expenseId: number) => void;
 }
 
-// groupExpensesByDay 函数 (保持不变)
-const groupExpensesByDay = (expenses: Expense[]): { [key: number]: Expense[] } => {
-  return expenses.reduce((acc, expense) => {
-    const day = expense.trip_day;
-    if (!acc[day]) {
-      acc[day] = [];
-    }
-    acc[day].push(expense);
+const groupByDay = (expenses: Expense[]) => {
+  return expenses.reduce((acc: Record<number, Expense[]>, e) => {
+    const d = e.trip_day || 0;
+    (acc[d] ||= []).push(e);
     return acc;
-  }, {} as { [key: number]: Expense[] });
+  }, {});
 };
 
-
-export default function TripExpensesCard({ 
-  trip, 
-  editingExpenseId, 
-  onSetEditingExpenseId, 
-  onUpdateExpense, 
-  onDeleteExpense 
+export default function TripExpensesCard({
+  trip,
+  editingExpenseId,
+  onSetEditingExpenseId,
+  onUpdateExpense,
+  onDeleteExpense,
 }: TripExpensesCardProps) {
-
-  const groupedExpenses = groupExpensesByDay(trip.expenses);
-  const totalTripSpent = trip.expenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const grouped = useMemo(() => groupByDay(trip.expenses), [trip.expenses]);
+  const totalTrip = useMemo(
+    () => trip.expenses.reduce((s, e) => s + Number(e.amount || 0), 0),
+    [trip.expenses]
+  );
 
   return (
-    <div className={styles.tripCard}>
+    <div className={`${styles.tripCard} ${styles.fadeIn}`}>
       <div className={styles.tripHeader}>
-        <h2 className={styles.tripTitle}>{trip.title}</h2>
-        <div className={styles.tripTotal}>总花费: ¥{totalTripSpent.toFixed(2)}</div>
+        <div>
+          <div className={styles.tripTitle}>{trip.title}</div>
+          <div className={styles.tripMeta}>创建时间：{new Date(trip.created_at).toLocaleString()}</div>
+        </div>
+        <div className={styles.tripTotal}>总花费：¥{totalTrip.toFixed(2)}</div>
       </div>
-      
+
       <div className={styles.tripContent}>
-        {trip.expenses.length > 0 ? (
-          Object.entries(groupedExpenses)
-            .sort(([dayA], [dayB]) => parseInt(dayA) - parseInt(dayB))
-            .map(([day, expensesOnDay]) => (
-              <div key={day}>
-                <h3 className={styles.dayTitle}>Day {day}</h3>
-                <div className={styles.expensesList}>
-                  {expensesOnDay.map(expense => (
-                    // 4. 使用新的 ExpenseRow 组件来渲染每一行
-                    <ExpenseRow 
-                      key={expense.id}
-                      expense={expense}
-                      // 判断当前行是否正在被编辑
-                      isEditing={editingExpenseId === expense.id}
-                      // 将所有操作函数“透传”给子组件
-                      onSetEditing={onSetEditingExpenseId}
-                      onUpdate={onUpdateExpense}
-                      onDelete={() => onDeleteExpense(expense.id, trip.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))
-        ) : (
+        {trip.expenses.length === 0 ? (
           <p className={styles.noRecordText}>本行程暂无开销记录</p>
+        ) : (
+          Object.entries(grouped)
+            .sort(([a], [b]) => Number(a) - Number(b))
+            .map(([day, items], idx) => {
+              const dayTotal = items.reduce((s, e) => s + Number(e.amount || 0), 0);
+              const percent = totalTrip > 0 ? (dayTotal / totalTrip) * 100 : 0;
+
+              return (
+                <div key={day} className={`${styles.fadeIn} ${idx % 3 === 0 ? styles.fadeDelay1 : idx % 3 === 1 ? styles.fadeDelay2 : styles.fadeDelay3}`}>
+                  {/* Day 头部 + 进度条 */}
+                  <div className={styles.dayHeader}>
+                    <h3 className={styles.dayTitle}>Day {day}</h3>
+                    <div className={styles.dayMeta}>
+                      {items.length} 笔 · 当日合计 <span className="font-semibold">¥{dayTotal.toFixed(2)}</span>
+                    </div>
+                  </div>
+                  <div className={styles.progressBar}>
+                    <div className={styles.progressFill} style={{ width: `${percent}%` }} />
+                  </div>
+
+                  {/* 时间线列表 */}
+                  <div className={`${styles.expensesList} ${styles.scrollbar}`}>
+                    {items.map((expense, i) => (
+                      <ExpenseRow
+                        key={expense.id}
+                        expense={expense}
+                        isEditing={editingExpenseId === expense.id}
+                        onSetEditing={onSetEditingExpenseId}
+                        onUpdate={onUpdateExpense}
+                        onDelete={() => onDeleteExpense(expense.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })
         )}
       </div>
     </div>
