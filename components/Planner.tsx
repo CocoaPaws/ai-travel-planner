@@ -105,11 +105,11 @@ export default function Planner() {
       const fullPlan = {
         ...newPlanData,
         id: `plan_${Date.now()}`, // 这是一个临时 ID
-        title: `${requestData.mainQuery.slice(0, 15)}...`,
+        title: `${requestData.mainQuery.slice(0,30)}...`,
         //budget: newPlanData.daily_plan.reduce((total, day) => total + day.activities.reduce((sum, act) => sum + (act.estimated_cost || 0), 0), 0),
         generatedFrom: fullRequestText,
       };
-
+      
       setPlan(fullPlan);
       setList((currentList) => [fullPlan, ...currentList]);
       setSelectedDayIndex(0);

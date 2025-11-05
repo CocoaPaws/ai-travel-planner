@@ -1,0 +1,47 @@
+/* components/LoadingSkeleton.module.css */
+.skeletonContainer {
+  width: 100%;
+  height: 100%;
+}
+
+.skeleton {
+  background-color: #e2e8f0; /* 这是一个淡灰色，类似 Tailwind 的 slate-200 */
+  border-radius: 0.5rem;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 脉冲动画 */
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.skeletonMap {
+  height: 50vh;
+  min-height: 250px;
+  margin-bottom: 1.5rem;
+}
+
+.skeletonActionBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.skeletonTitle {
+  width: 40%;
+  height: 1.75rem;
+}
+
+.skeletonButton {
+  width: 100px;
+  height: 2.5rem;
+}
+
+.skeletonDayCard {
+  width: 100%;
+  height: 6rem;
+  margin-bottom: 1rem;
+}

@@ -123,3 +123,23 @@ export const NavigationIcon = ({ size = 18, className }: IconProps) => (
     <path d="M3 11l19-9-9 19-2-8-8-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
+
+export const LoadingSpinnerIcon = ({ size = 20, color = "currentColor" }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    // 这个 style 属性是内联的，但也可以用 CSS 模块的 animation
+    style={{ animation: 'spin 1s linear infinite' }} 
+  >
+    <path
+      d="M12 2.99982C16.9706 2.99982 21 7.02925 21 11.9998C21 16.9704 16.9706 20.9998 12 20.9998C7.02944 20.9998 3 16.9704 3 11.9998C3 8.87963 4.42841 6.13111 6.5 4.49982"
+      stroke={color}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
