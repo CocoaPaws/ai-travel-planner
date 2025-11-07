@@ -35,52 +35,74 @@ export default function Planner() {
   const [isLoadingExpenses, setIsLoadingExpenses] = useState(false);
 
   // === 数据加载 Effect ===
+// components/Planner.tsx -> useEffect
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoadingHistory(true);
+      setError(null); // 在开始获取前，清空旧的错误信息
       try {
         const supabase = createSupabaseBrowserClient();
         const { data: { user } } = await supabase.auth.getUser();
 
-        if (user) {
-          const { data: trips, error } = await supabase
-            .from('trips')
-            .select('id, created_at, generated_plan')
-            .order('created_at', { ascending: false })
-            .limit(10);
-
-          if (error) throw error;
-
-          if (trips && trips.length > 0) {
-            const historyList = trips.map(trip => ({
-              ...(trip.generated_plan as AiTripPlan),
-              id: trip.id,
-            }));
-            setList(historyList);
-            
-            const latestPlan = historyList[0];
-            if (latestPlan.id) {
-              await fetchExpensesForTrip(latestPlan.id);
-            }
-
-            // 获取最新行程的开销
-            const { data: expensesData, error: expensesError } = await supabase
-              .from('expenses')
-              .select('*')
-              .eq('trip_id', latestPlan.id);
-            
-            if (expensesError) throw expensesError;
-            setExpenses(expensesData || []);
-          }
+        // 如果用户未登录，则直接结束
+        if (!user) {
+          setIsLoadingHistory(false);
+          return; 
         }
-      } catch (error) {
-        console.error("获取初始数据失败:", error);
+
+        // --- 1. 获取行程历史 ---
+        const { data: trips, error: tripsError } = await supabase
+          .from('trips')
+          .select('id, created_at, generated_plan')
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        // 明确地处理 trips 查询的错误
+        if (tripsError) {
+          // 不要直接 throw，而是构造一个更明确的错误
+          throw new Error(`获取行程失败: ${tripsError.message}`);
+        }
+        
+        // 如果没有行程，则设置为空状态并结束
+        if (!trips || trips.length === 0) {
+          console.log("用户没有任何历史行程。");
+          setList([]);
+          setPlan(null);
+          setExpenses([]);
+          setIsLoadingHistory(false);
+          return;
+        }
+
+        // --- 2. 处理获取到的行程数据 ---
+        const historyList = trips.map(trip => ({
+          ...(trip.generated_plan as AiTripPlan),
+          id: trip.id,
+        }));
+        setList(historyList);
+        
+        const latestPlan = historyList[0];
+        setPlan(latestPlan);
+
+        // --- 3. 获取最新行程的开销 ---
+        // (我们复用之前创建的 fetchExpensesForTrip 函数，避免代码重复)
+        if (latestPlan.id) {
+          await fetchExpensesForTrip(latestPlan.id);
+        } else {
+          setExpenses([]); // 如果最新计划没有ID，清空开销
+        }
+
+      } catch (error: any) {
+        // 4. 更明确的错误日志
+        console.error("获取初始数据时发生错误:", error);
+        setError("加载历史数据失败，请刷新页面重试。"); // 在UI上显示一个友好的错误信息
       } finally {
         setIsLoadingHistory(false);
       }
     };
+
     fetchData();
-  }, []);
+  }, []); // 依赖项保持为空
 
   // === 核心功能函数 ===
   const handleGenerate = async (requestData: NewPlanRequest) => {
@@ -138,7 +160,7 @@ export default function Planner() {
         generated_plan: plan,
       };
       
-      const { error } = await supabase.from('trips').insert([tripData]);
+      const { error } = await supabase.from('trips').insert([tripData]); // <--- 只插入，不返回数据
       if (error) throw error;
       alert("行程已成功保存到云端！");
     } catch (error: any) {
