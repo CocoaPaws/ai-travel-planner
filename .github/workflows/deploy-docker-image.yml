@@ -1,0 +1,61 @@
+# .github/workflows/deploy-docker-image.yml
+
+# 工作流名称，会显示在 GitHub Actions 页面
+name: Build and Push Docker Image to Aliyun ACR
+
+# 触发条件:
+# 1. 当有代码推送到 "main" 分支时自动触发。
+# 2. 允许在 GitHub Actions 页面手动点击 "Run workflow" 来触发。
+on:
+  push:
+    branches: [ "main" ] # 如果您的主分支是 master，请修改为 [ "master" ]
+  workflow_dispatch:
+
+# 定义工作流中的任务
+jobs:
+  build-and-push-to-acr:
+    # 指定任务运行在最新版的 Ubuntu 虚拟机上
+    runs-on: ubuntu-latest
+
+    # 定义任务的各个步骤
+    steps:
+      # 步骤 1: 检出代码
+      # 从您的 GitHub 仓库下载源代码到虚拟机环境中
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 步骤 2: 登录到阿里云容器镜像仓库 (ACR)
+      # 使用您在 GitHub Secrets 中设置的 ACR 凭证
+      - name: Log in to Aliyun Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ACR_REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      # 步骤 3: 构建 Docker 镜像并推送到 ACR
+      # 这是最核心的步骤
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          # `context: .` 表示 Dockerfile 位于仓库的根目录
+          context: .
+          
+          # `push: true` 表示在构建成功后，立即将镜像推送到仓库
+          push: true
+          
+          # `tags:` 定义了镜像的名称和标签
+          # 我们会为每次构建创建两个标签：
+          #   1. 一个固定的 'latest' 标签，代表最新版本。
+          #   2. 一个基于 commit SHA 的唯一标签，方便追溯版本。
+          tags: |
+            ${{ secrets.ACR_REGISTRY }}/my-ai-apps/ai-travel-planner:latest
+            ${{ secrets.ACR_REGISTRY }}/my-ai-apps/ai-travel-planner:sha-${{ github.sha }}
+            
+          # `build-args:` 将您在 GitHub Secrets 中设置的环境变量
+          # 作为构建参数传递给 Dockerfile。
+          build-args: |
+            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+            NEXT_PUBLIC_AMAP_KEY=${{ secrets.NEXT_PUBLIC_AMAP_KEY }}
+            ALIYUN_DASHSCOPE_API_KEY=${{ secrets.ALIYUN_DASHSCOPE_API_KEY }}
