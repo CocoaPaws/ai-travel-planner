@@ -61,7 +61,13 @@ export default function Sidebar({ isOpen, setIsOpen, list, onSelectPlan, isLoadi
                     {isOpen && (
                       <CardContent style={{ padding: 0, marginTop: '0.25rem' }}>
                         <div className={styles.planMetaText}>
-                          {p.daily_plan?.length || 0} 天 • 预算 {p.budget || 0} 元
+                          {p.daily_plan?.length || 0} 天 • 预算 
+                          {
+                            p.daily_plan?.reduce((total: number, day: any) => 
+                              total + day.activities.reduce((sum: number, act: any) => sum + (act.estimated_cost || 0), 0)
+                            , 0) || 0
+                          }
+                          元
                         </div>
                       </CardContent>
                     )}

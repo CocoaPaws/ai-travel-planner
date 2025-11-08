@@ -33,7 +33,7 @@ export default function Planner() {
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true); // 新增：历史记录的加载状态
   const [isLoadingExpenses, setIsLoadingExpenses] = useState(false);
-
+  const [isSaving, setIsSaving] = useState(false); 
   // === 数据加载 Effect ===
 // components/Planner.tsx -> useEffect
 
@@ -145,26 +145,75 @@ export default function Planner() {
   };
 
   const savePlan = async () => {
-    if (!plan) return alert("没有可保存的行程。");
+    if (!plan) {
+      alert("没有可保存的行程。");
+      return;
+    }
+
+    // 1. 检查 plan.id 的类型，防止重复保存
+    if (typeof plan.id === 'number') {
+      alert("✓ 计划已在云端，无需重复保存。");
+      return; // 提前终止函数
+    }
+
     try {
       const supabase = createSupabaseBrowserClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return alert("请先登录再保存行程。");
+      if (!user) {
+        alert("请先登录再保存行程。");
+        return;
+      }
 
+      // 准备要插入数据库的数据 (与您之前的代码一致)
       const tripData = {
         destination: plan.title?.split(' - ')[0],
         start_date: new Date().toISOString(),
         end_date: new Date(new Date().setDate(new Date().getDate() + (plan.daily_plan?.length || 0))).toISOString(),
-        //budget: plan.budget,
+        budget: plan.budget, // 确保您的 trips 表有 budget 列
         preferences_text: plan.generatedFrom,
         generated_plan: plan,
       };
       
-      const { error } = await supabase.from('trips').insert([tripData]); // <--- 只插入，不返回数据
+      // ================== 核心修改在这里 ==================
+      // 2. 在 insert 后面链式调用 .select() 和 .single()
+      const { data, error } = await supabase
+        .from('trips')
+        .insert([tripData])
+        .select()   // <-- 这会返回刚刚被插入的数据行
+        .single();  // <-- 这会将结果从数组 [ {..} ] 转换为对象 {..}
+
       if (error) throw error;
-      alert("行程已成功保存到云端！");
+      if (!data) throw new Error("保存后未能从数据库返回行程数据");
+      
+      console.log("保存成功，并从数据库返回了新数据:", data);
+
+      // 3. 用返回的、带有真实 ID 的数据，更新前端的 plan state
+      const newlySavedPlan = {
+        ...(data.generated_plan as AiTripPlan),
+        id: data.id, // 使用从数据库返回的真实 ID
+      };
+      setPlan(newlySavedPlan);
+
+      // 4. (推荐) 同步更新左侧历史记录列表中的对应项
+      setList(currentList => {
+        const newList = [...currentList];
+        // 找到列表中具有旧的临时 ID 的那一项
+        const indexToUpdate = newList.findIndex(p => p.id === plan.id); 
+        if (indexToUpdate !== -1) {
+          // 用带有真实 ID 的新数据替换它
+          newList[indexToUpdate] = newlySavedPlan; 
+        }
+        return newList;
+      });
+      // ======================================================
+
+      alert("行程已成功保存到云端！现在可以为它记账了。");
+
     } catch (error: any) {
+      console.error("保存行程失败:", error);
       alert(`保存失败: ${error.message}`);
+    } finally {
+      setIsSaving(false); // <--- 在 finally 中设置为 false
     }
   };
 
@@ -262,6 +311,7 @@ export default function Planner() {
             plan={plan}
             selectedDayIndex={selectedDayIndex}
             onSelectDay={setSelectedDayIndex}
+            isSaving={isSaving} 
             onSave={savePlan}
             onChat={openChat}
             locations={locationsForMap}

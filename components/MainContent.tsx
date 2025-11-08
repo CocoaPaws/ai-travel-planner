@@ -21,6 +21,7 @@ interface MainContentProps {
   locations: any[];
   isLoading: boolean;
   error: string | null;
+  isSaving?: boolean;
 }
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -41,6 +42,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 export default function MainContent({ 
   plan, 
+  isSaving,
   onSave, 
   onChat, 
   locations, 
@@ -71,7 +73,7 @@ export default function MainContent({
   }
 
   const budgetData = plan.daily_plan.map((day: any, idx: number) => ({ name: `D${day.day}`, value: day.activities.reduce((sum: number, act: any) => sum + (act.estimated_cost || 0), 0) }));
-
+  const isPlanSaved = typeof plan.id === 'number';
   // 3. 正常渲染
 return (
     <section className={styles.mainContent}>
@@ -86,7 +88,14 @@ return (
       <div className={styles.actionBar}>
         <h2 className={styles.planTitle}>{plan.title}</h2>
         <div className={styles.actionBarButtons}>
-          <Button variant="outline" onClick={onSave}>保存计划</Button>
+          <Button 
+            variant="outline" 
+            onClick={onSave}
+            // 根据状态禁用按钮
+            disabled={isSaving || isPlanSaved} 
+          >
+            {isSaving ? '保存中...' : (isPlanSaved ? '✓ 已保存' : '保存计划')}
+          </Button>
         </div>
       </div>
 
