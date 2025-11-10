@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧭 AI Travel Planner 运行指南
 
-## Getting Started
+本项目是一个基于 Docker 部署的 AI 旅行规划应用。请按照以下步骤运行。
 
-First, run the development server:
+---
+
+## 📦 前置准备
+
+1. **确保已安装 Docker**  
+   如果未安装，请前往 [Docker 官网](https://www.docker.com/) 下载并安装适合您系统的版本。
+
+2. **准备环境变量文件**  
+   **下载项目提供的 `travel-planner.env` 文件（位于教学支持系统的作业提交区域），并将其放置在您计划运行容器的目录中。**
+
+---
+
+## 🚀 启动应用
+
+在 `travel-planner.env` 文件所在目录下打开命令行（CMD 或终端），依次执行以下命令：
+
+### 1. 拉取镜像
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker pull crpi-m0t3qhte429avdh2.cn-hangzhou.personal.cr.aliyuncs.com/my-ai-apps/ai-travel-planner:latest
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. 运行容器
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+docker run --name ai-planner-instance -p 3000:3000 --env-file ./travel-planner.env -d crpi-m0t3qhte429avdh2.cn-hangzhou.personal.cr.aliyuncs.com/my-ai-apps/ai-travel-planner:latest
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**参数说明：**
 
-## Learn More
+- `--name ai-planner-instance`：指定容器名称。
 
-To learn more about Next.js, take a look at the following resources:
+- `-p 3000:3000`：将容器的 3000 端口映射到本地 3000 端口。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `--env-file ./travel-planner.env`：加载环境变量配置文件。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `-d`：在后台运行容器。
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🌐 访问应用
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+启动成功后，在浏览器中打开：
+
+👉 [http://localhost:3000](http://localhost:3000/)
+
+即可访问 AI Travel Planner 应用。
+
+## 💡 提示
+
+如需更新镜像，请执行：
+
+```bash
+docker pull crpi-m0t3qhte429avdh2.cn-hangzhou.personal.cr.aliyuncs.com/my-ai-apps/ai-travel-planner:latest
+docker stop ai-planner-instance && docker rm ai-planner-instance
+```
+
+然后重新运行启动命令。
